@@ -1,0 +1,23 @@
+<IfModule mod_autoindex.c>
+   # Disable Indexes
+   Options -Indexes
+</IfModule>
+
+# Mod_Rewrite
+<IfModule mod_rewrite.c>
+   Options +FollowSymlinks
+   # Enable mod_rewrite
+   RewriteEngine On
+
+   # Backend redirect    Or /backend
+   RewriteCond %{REQUEST_URI} ^.*/backend
+   RewriteRule ^backend/(.*)$ backend/web/$1 [L]
+
+   # Statics redirect
+   RewriteCond %{REQUEST_URI} ^.*/statics
+   RewriteRule ^statics/(.*)$ statics/web/$1 [L]
+
+   # Frontend redirect
+   RewriteCond %{REQUEST_URI} ^(.*)$
+   RewriteRule ^(.*)$ frontend/web/$1
+</IfModule>
