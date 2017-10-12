@@ -12,6 +12,10 @@ use common\models\User;
  */
 class UserSearch extends User
 {
+    public $size = 10;
+    public $sort = [
+        'id' => SORT_ASC,
+    ];
     /**
      * @inheritdoc
      */
@@ -34,12 +38,9 @@ class UserSearch extends User
 
     /**
      * Creates data provider instance with search query applied
-     *
-     * @param array $params
-     *
      * @return ActiveDataProvider
      */
-    public function search($params)
+    public function search()
     {
         $query = User::find();
 
@@ -47,9 +48,13 @@ class UserSearch extends User
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
+            'pagination' => [
+                'pageSize' => $this->size,
+            ],
+            'sort' => [
+                'defaultOrder' => $this->sort
+            ],
         ]);
-
-        $this->load($params);
 
         if (!$this->validate()) {
             // uncomment the following line if you do not want to return any records when validation fails

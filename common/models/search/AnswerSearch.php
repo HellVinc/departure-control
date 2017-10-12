@@ -12,6 +12,10 @@ use common\models\Answer;
  */
 class AnswerSearch extends Answer
 {
+    public $size = 10;
+    public $sort = [
+        'id' => SORT_ASC,
+    ];
     /**
      * @inheritdoc
      */
@@ -33,12 +37,9 @@ class AnswerSearch extends Answer
 
     /**
      * Creates data provider instance with search query applied
-     *
-     * @param array $params
-     *
      * @return ActiveDataProvider
      */
-    public function search($params)
+    public function search()
     {
         $query = Answer::find();
 
@@ -46,9 +47,13 @@ class AnswerSearch extends Answer
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
+            'pagination' => [
+                'pageSize' => $this->size,
+            ],
+            'sort' => [
+                'defaultOrder' => $this->sort
+            ],
         ]);
-
-        $this->load($params);
 
         if (!$this->validate()) {
             // uncomment the following line if you do not want to return any records when validation fails

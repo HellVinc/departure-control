@@ -2,10 +2,15 @@
 
 namespace common\models;
 
+use common\components\helpers\ExtendedActiveRecord;
 use Yii;
 use yii\behaviors\BlameableBehavior;
 use yii\behaviors\TimestampBehavior;
 use yii\db\ActiveRecord;
+use common\components\traits\errors;
+use common\components\traits\modelWithFiles;
+use common\components\traits\soft;
+use common\components\traits\findRecords;
 
 /**
  * This is the model class for table "no_answer".
@@ -22,8 +27,12 @@ use yii\db\ActiveRecord;
  *
  * @property Answer $answer
  */
-class NoAnswer extends ActiveRecord
+class NoAnswer extends ExtendedActiveRecord
 {
+    use soft;
+    use findRecords;
+    use errors;
+    use modelWithFiles;
     /**
      * @inheritdoc
      */

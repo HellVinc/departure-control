@@ -2,16 +2,22 @@
 
 namespace common\models;
 
+use common\components\helpers\ExtendedActiveRecord;
 use Yii;
 use yii\behaviors\BlameableBehavior;
 use yii\behaviors\TimestampBehavior;
 use yii\db\ActiveRecord;
+use common\components\traits\errors;
+use common\components\traits\modelWithFiles;
+use common\components\traits\soft;
+use common\components\traits\findRecords;
 
 /**
  * This is the model class for table "audit".
  *
  * @property integer $id
  * @property string $type
+ * @property string $status
  * @property integer $created_at
  * @property integer $updated_at
  * @property integer $created_by
@@ -20,8 +26,12 @@ use yii\db\ActiveRecord;
  * @property Kriterien[] $kriteriens
  * @property UserAudit[] $userAudits
  */
-class Audit extends ActiveRecord
+class Audit extends ExtendedActiveRecord
 {
+    use soft;
+    use findRecords;
+    use errors;
+    use modelWithFiles;
     /**
      * @inheritdoc
      */
@@ -55,7 +65,7 @@ class Audit extends ActiveRecord
     {
         return [
             [['type', 'created_at', 'updated_at'], 'required'],
-            [['created_at', 'updated_at', 'created_by', 'updated_by'], 'integer'],
+            [['created_at', 'updated_at', 'created_by', 'updated_by', 'status'], 'integer'],
             [['type'], 'string', 'max' => 255],
         ];
     }

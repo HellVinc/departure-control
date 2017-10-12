@@ -2,10 +2,16 @@
 
 namespace common\models;
 
+use common\components\helpers\ExtendedActiveRecord;
 use Yii;
 use yii\behaviors\BlameableBehavior;
 use yii\behaviors\TimestampBehavior;
 use yii\db\ActiveRecord;
+use common\components\traits\errors;
+use common\components\traits\modelWithFiles;
+use common\components\traits\soft;
+use common\components\traits\findRecords;
+use yii\web\IdentityInterface;
 
 /**
  * This is the model class for table "user".
@@ -25,11 +31,18 @@ use yii\db\ActiveRecord;
  *
  * @property UserAudit[] $userAudits
  */
-class User extends ActiveRecord
+class User extends ExtendedActiveRecord implements IdentityInterface
 {
 
-    const STATUS_ACTIVE = 10;
-    const STATUS_DELETED = 0;
+    use soft;
+    use findRecords;
+    use errors;
+    use modelWithFiles;
+
+    const TYPE_ADMIN = 1;
+    const TYPE_VERLANDER = 2;
+    const TYPE_FRACHTFUHRER =3;
+    const TYPE_EMPFANGER = 4;
 
     /**
      * @inheritdoc
@@ -115,14 +128,32 @@ class User extends ActiveRecord
     }
 
     /**
-     * Finds user by phone
+     * Finds user by username
      *
-     * @param string $email
+     * @param string $username
      * @return static|null
      */
-    public static function findByPhone($email)
+    public static function findByUsername($username)
     {
-        return static::findOne(['phone' => $email, 'status' => self::STATUS_ACTIVE]);
+        return static::findOne(['username' => $username, 'status' => self::STATUS_ACTIVE]);
+    }
+
+    /**
+     * Finds user by password reset token
+     *
+     * @param string $token password reset token
+     * @return static|null
+     */
+    public static function findByPasswordResetToken($token)
+    {
+        if (!static::isPasswordResetTokenValid($token)) {
+            return null;
+        }
+
+        return static::findOne([
+            'password_reset_token' => $token,
+            'status' => self::STATUS_ACTIVE,
+        ]);
     }
 
     /**
@@ -140,6 +171,14 @@ class User extends ActiveRecord
         $timestamp = (int)substr($token, strrpos($token, '_') + 1);
         $expire = Yii::$app->params['user.passwordResetTokenExpire'];
         return $timestamp + $expire >= time();
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getId()
+    {
+        return $this->getPrimaryKey();
     }
 
     /**

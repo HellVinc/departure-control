@@ -12,6 +12,10 @@ use common\models\UserAudit;
  */
 class UserAuditSearch extends UserAudit
 {
+    public $size = 10;
+    public $sort = [
+        'id' => SORT_ASC,
+    ];
     /**
      * @inheritdoc
      */
@@ -32,13 +36,10 @@ class UserAuditSearch extends UserAudit
     }
 
     /**
-     * Creates data provider instance with search query applied
-     *
-     * @param array $params
-     *
+     * Creates data provider instance with search query applied*
      * @return ActiveDataProvider
      */
-    public function search($params)
+    public function search()
     {
         $query = UserAudit::find();
 
@@ -46,9 +47,14 @@ class UserAuditSearch extends UserAudit
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
+            'pagination' => [
+                'pageSize' => $this->size,
+            ],
+            'sort' => [
+                'defaultOrder' => $this->sort
+            ],
         ]);
 
-        $this->load($params);
 
         if (!$this->validate()) {
             // uncomment the following line if you do not want to return any records when validation fails

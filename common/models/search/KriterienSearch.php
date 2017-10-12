@@ -12,6 +12,10 @@ use common\models\Kriterien;
  */
 class KriterienSearch extends Kriterien
 {
+    public $size = 10;
+    public $sort = [
+        'id' => SORT_ASC,
+    ];
     /**
      * @inheritdoc
      */
@@ -34,12 +38,9 @@ class KriterienSearch extends Kriterien
 
     /**
      * Creates data provider instance with search query applied
-     *
-     * @param array $params
-     *
      * @return ActiveDataProvider
      */
-    public function search($params)
+    public function search()
     {
         $query = Kriterien::find();
 
@@ -47,9 +48,14 @@ class KriterienSearch extends Kriterien
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
+            'pagination' => [
+                'pageSize' => $this->size,
+            ],
+            'sort' => [
+                'defaultOrder' => $this->sort
+            ],
         ]);
 
-        $this->load($params);
 
         if (!$this->validate()) {
             // uncomment the following line if you do not want to return any records when validation fails

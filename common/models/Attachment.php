@@ -2,6 +2,7 @@
 
 namespace common\models;
 
+use common\components\helpers\ExtendedActiveRecord;
 use Yii;
 use yii\behaviors\BlameableBehavior;
 use yii\behaviors\TimestampBehavior;
@@ -21,7 +22,7 @@ use yii\db\ActiveRecord;
  * @property integer $created_by
  * @property integer $updated_by
  */
-class Attachment extends ActiveRecord
+class Attachment extends ExtendedActiveRecord
 {
     /**
      * @inheritdoc

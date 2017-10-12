@@ -5,7 +5,9 @@ namespace api\modules\v1\controllers;
 use Yii;
 use common\models\User;
 use common\models\search\UserSearch;
-use yii\web\Controller;
+use yii\filters\AccessControl;
+use yii\filters\auth\QueryParamAuth;
+use yii\rest\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
 
@@ -14,46 +16,77 @@ use yii\filters\VerbFilter;
  */
 class UserController extends Controller
 {
-    /**
-     * @inheritdoc
-     */
     public function behaviors()
     {
-        return [
-            'verbs' => [
-                'class' => VerbFilter::className(),
-                'actions' => [
-                    'delete' => ['POST'],
-                ],
+        $behaviors = parent::behaviors();
+//        $behaviors['authenticator'] = [
+//            'class' => QueryParamAuth::className(),
+//            'tokenParam' => 'auth_key',
+//            'only' => [
+//                'all',
+//                'one',
+//                'create',
+//                'update',
+//                'delete',
+//            ],
+//        ];
+//        $behaviors['access'] = [
+//            'class' => AccessControl::className(),
+//            'only' => [
+//                'create',
+//                'update',
+//                'delete',
+//            ],
+//            'rules' => [
+//                [
+//                    'actions' => [
+//                        'create',
+//                        'update',
+//                        'delete',
+//                    ],
+//                    'allow' => true,
+//                    'roles' => ['admin'],
+//
+//                ],
+//            ],
+//        ];
+
+        $behaviors['verbFilter'] = [
+            'class' => VerbFilter::className(),
+            'actions' => [
+                'all' => ['get'],
+                'one' => ['get'],
+                'create' => ['post'],
+                'update' => ['post'],
+                'delete' => ['delete'],
             ],
+        ];
+
+        return $behaviors;
+    }
+
+    /**
+     * @return string
+     */
+    public function actionAll()
+    {
+        $model = new UserSearch();
+        $dataProvider = $model->searchAll(Yii::$app->request->get());
+        return [
+            'models' => User::allFields($dataProvider->getModels()),
+            'page_count' => $dataProvider->pagination->pageCount,
+            'page' => $dataProvider->pagination->page + 1,
+            'count_model' => $dataProvider->getTotalCount()
         ];
     }
 
     /**
-     * Lists all User models.
-     * @return mixed
-     */
-    public function actionIndex()
-    {
-        $searchModel = new UserSearch();
-        $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
-
-        return $this->render('index', [
-            'searchModel' => $searchModel,
-            'dataProvider' => $dataProvider,
-        ]);
-    }
-
-    /**
      * Displays a single User model.
-     * @param integer $id
      * @return mixed
      */
-    public function actionView($id)
+    public function actionOne()
     {
-        return $this->render('view', [
-            'model' => $this->findModel($id),
-        ]);
+        return $this->findModel(Yii::$app->request->get('id'));
     }
 
     /**
@@ -66,12 +99,9 @@ class UserController extends Controller
         $model = new User();
 
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->id]);
-        } else {
-            return $this->render('create', [
-                'model' => $model,
-            ]);
+            return $model;
         }
+        return ['errors' => $model->errors];
     }
 
     /**
@@ -85,25 +115,19 @@ class UserController extends Controller
         $model = $this->findModel($id);
 
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->id]);
-        } else {
-            return $this->render('update', [
-                'model' => $model,
-            ]);
+            return $model;
         }
+        return ['errors' => $model->errors];
     }
 
     /**
      * Deletes an existing User model.
      * If deletion is successful, the browser will be redirected to the 'index' page.
-     * @param integer $id
      * @return mixed
      */
-    public function actionDelete($id)
+    public function actionDelete()
     {
-        $this->findModel($id)->delete();
-
-        return $this->redirect(['index']);
+        return $this->findModel(Yii::$app->request->post('id'))->delete();
     }
 
     /**
@@ -116,9 +140,11 @@ class UserController extends Controller
     protected function findModel($id)
     {
         if (($model = User::findOne($id)) !== null) {
-            return $model;
-        } else {
+            if ($model->status !== 0) {
+                return $model;
+            }
             throw new NotFoundHttpException('The requested page does not exist.');
         }
+        throw new NotFoundHttpException('The requested page does not exist.');
     }
 }
