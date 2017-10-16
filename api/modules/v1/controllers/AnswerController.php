@@ -56,7 +56,7 @@ class AnswerController extends Controller
                 'one' => ['get'],
                 'create' => ['post'],
                 'update' => ['post'],
-                'delete' => ['delete'],
+                'delete' => ['post'],
             ],
         ];
 

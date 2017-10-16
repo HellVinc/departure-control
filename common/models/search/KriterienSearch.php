@@ -22,8 +22,8 @@ class KriterienSearch extends Kriterien
     public function rules()
     {
         return [
-            [['id', 'audit_id', 'position', 'status', 'created_at', 'updated_at', 'created_by', 'updated_by'], 'integer'],
-            [['question'], 'safe'],
+            [['id', 'process_type', 'employee', 'status', 'created_at', 'updated_at', 'created_by', 'updated_by'], 'integer'],
+            [['question', 'name', 'description'], 'safe'],
         ];
     }
 
@@ -66,8 +66,8 @@ class KriterienSearch extends Kriterien
         // grid filtering conditions
         $query->andFilterWhere([
             'id' => $this->id,
-            'audit_id' => $this->audit_id,
-            'position' => $this->position,
+            'employee' => $this->employee,
+            'process_type' => $this->process_type,
             'status' => $this->status,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
@@ -75,7 +75,9 @@ class KriterienSearch extends Kriterien
             'updated_by' => $this->updated_by,
         ]);
 
-        $query->andFilterWhere(['like', 'question', $this->question]);
+        $query->andFilterWhere(['like', 'question', $this->question])
+        ->andFilterWhere(['like', 'name', $this->name])
+        ->andFilterWhere(['like', 'description', $this->description]);
 
         return $dataProvider;
     }

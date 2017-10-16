@@ -2,6 +2,7 @@
 
 namespace api\modules\v1\controllers;
 
+use common\models\AuditHasKriterien;
 use Yii;
 use common\models\Audit;
 use common\models\search\AuditSearch;
@@ -55,8 +56,9 @@ class AuditController extends Controller
                 'all' => ['get'],
                 'one' => ['get'],
                 'create' => ['post'],
+                'add-kriterien' => ['post'],
                 'update' => ['post'],
-                'delete' => ['delete'],
+                'delete' => ['post'],
             ],
         ];
 
@@ -85,7 +87,8 @@ class AuditController extends Controller
      */
     public function actionOne()
     {
-        return $this->findModel(Yii::$app->request->get('id'));
+         $model = $this->findModel(Yii::$app->request->get('id'));
+        return $model->oneFields();
     }
 
     /**
@@ -103,15 +106,25 @@ class AuditController extends Controller
         return ['errors' => $model->errors];
     }
 
+    public function actionAddKriterien()
+    {
+        $model = new AuditHasKriterien();
+
+        if ($model->load(Yii::$app->request->post()) && $model->save()) {
+            return $model;
+        }
+        return ['errors' => $model->errors];
+    }
+
     /**
      * Updates an existing Audit model.
      * If update is successful, the browser will be redirected to the 'view' page.
      * @param integer $id
      * @return mixed
      */
-    public function actionUpdate($id)
+    public function actionUpdate()
     {
-        $model = $this->findModel($id);
+        $model = $this->findModel(Yii::$app->request->post('id'));
 
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
             return $model;

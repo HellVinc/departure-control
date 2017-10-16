@@ -2,6 +2,8 @@
 
 namespace api\modules\v1\controllers;
 
+use api\modules\v1\modelForms\SignupForm;
+use common\models\LoginForm;
 use Yii;
 use common\models\User;
 use common\models\search\UserSearch;
@@ -57,8 +59,9 @@ class UserController extends Controller
                 'all' => ['get'],
                 'one' => ['get'],
                 'create' => ['post'],
+                'login' => ['post'],
                 'update' => ['post'],
-                'delete' => ['delete'],
+                'delete' => ['post'],
             ],
         ];
 
@@ -98,10 +101,27 @@ class UserController extends Controller
     {
         $model = new User();
 
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $model;
+        if ($model->load(Yii::$app->request->post()) && $model->validate()) {
+            return [
+                'model' => $model->signup(),
+            ];
         }
         return ['errors' => $model->errors];
+    }
+
+    public function actionLogin()
+    {
+        $model = new LoginForm();
+        if ($model->load(Yii::$app->request->post(), "")) {
+            if ($model->login()) {
+                $result = $model;
+                return [
+                    'model' => $result,
+                ];
+            }
+            return ['error' => 'Invalid login or password'];
+        }
+        return ['error' => 'Error. Bad request.'];
     }
 
     /**

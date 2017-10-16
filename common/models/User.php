@@ -44,6 +44,8 @@ class User extends ExtendedActiveRecord implements IdentityInterface
     const TYPE_FRACHTFUHRER =3;
     const TYPE_EMPFANGER = 4;
 
+    public $password;
+
     /**
      * @inheritdoc
      */
@@ -77,10 +79,12 @@ class User extends ExtendedActiveRecord implements IdentityInterface
     public function rules()
     {
         return [
-            [['username', 'account_type', 'auth_key', 'password_hash', 'email', 'created_at', 'updated_at'], 'required'],
+            [['username', 'account_type', 'email'], 'required'],
             [['account_type', 'status', 'created_at', 'updated_at', 'created_by', 'updated_by'], 'integer'],
-            [['username', 'password_hash', 'password_reset_token', 'email'], 'string', 'max' => 255],
+            [['username', 'password_reset_token', 'email'], 'string', 'max' => 255],
             [['auth_key'], 'string', 'max' => 32],
+            ['password', 'required', 'on' => 'signUp'],
+            ['password', 'string', 'min' => 6],
             [['username'], 'unique'],
             [['email'], 'unique'],
             [['password_reset_token'], 'unique'],
@@ -106,6 +110,17 @@ class User extends ExtendedActiveRecord implements IdentityInterface
             'created_by' => 'Created By',
             'updated_by' => 'Updated By',
         ];
+    }
+
+    public function signup()
+    {
+//        if (!$this->validate()) {
+//            return null;
+//        }
+        $this->setPassword($this->password);
+        $this->generateAuthKey();
+
+        return $this->save() ? $this : $this->errors;
     }
 
     /**

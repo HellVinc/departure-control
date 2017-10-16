@@ -56,7 +56,7 @@ class KriterienController extends Controller
                 'one' => ['get'],
                 'create' => ['post'],
                 'update' => ['post'],
-                'delete' => ['delete'],
+                'delete' => ['post'],
             ],
         ];
 
@@ -106,12 +106,11 @@ class KriterienController extends Controller
     /**
      * Updates an existing Kriterien model.
      * If update is successful, the browser will be redirected to the 'view' page.
-     * @param integer $id
      * @return mixed
      */
-    public function actionUpdate($id)
+    public function actionUpdate()
     {
-        $model = $this->findModel($id);
+        $model = $this->findModel(Yii::$app->request->post('id'));
 
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
             return $model;
@@ -126,7 +125,7 @@ class KriterienController extends Controller
      */
     public function actionDelete()
     {
-        return $this->findModel(Yii::$app->request->post('id'))->delete();
+        return $this->findModel(Yii::$app->request->post('id'))->delete(false);
     }
 
     /**
@@ -138,7 +137,7 @@ class KriterienController extends Controller
      */
     protected function findModel($id)
     {
-        if (($model = User::findOne($id)) !== null) {
+        if (($model = Kriterien::findOne($id)) !== null) {
             if ($model->status !== 0) {
                 return $model;
             }

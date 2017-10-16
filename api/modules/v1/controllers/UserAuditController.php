@@ -56,7 +56,7 @@ class UserAuditController extends Controller
                 'one' => ['get'],
                 'create' => ['post'],
                 'update' => ['post'],
-                'delete' => ['delete'],
+                'delete' => ['post'],
             ],
         ];
 
@@ -138,7 +138,7 @@ class UserAuditController extends Controller
      */
     protected function findModel($id)
     {
-        if (($model = User::findOne($id)) !== null) {
+        if (($model = UserAudit::findOne($id)) !== null) {
             if ($model->status !== 0) {
                 return $model;
             }

@@ -4,40 +4,42 @@ namespace common\models;
 
 use common\components\helpers\ExtendedActiveRecord;
 use Yii;
-use yii\behaviors\BlameableBehavior;
-use yii\behaviors\TimestampBehavior;
-use yii\db\ActiveRecord;
 use common\components\traits\errors;
 use common\components\traits\modelWithFiles;
 use common\components\traits\soft;
 use common\components\traits\findRecords;
+use yii\behaviors\BlameableBehavior;
+use yii\behaviors\TimestampBehavior;
+use yii\db\ActiveRecord;
 
 /**
- * This is the model class for table "audit".
+ * This is the model class for table "audit_has_kriterien".
  *
- * @property integer $id
- * @property string $type
- * @property string $status
+ * @property integer $kriterien_id
+ * @property integer $audit_id
+ * @property integer $status
  * @property integer $created_at
  * @property integer $updated_at
  * @property integer $created_by
  * @property integer $updated_by
  *
- * @property Kriterien[] $kriteriens
- * @property UserAudit[] $userAudits
+ * @property Audit $audit
+ * @property Kriterien $kriterien
  */
-class Audit extends ExtendedActiveRecord
+class AuditHasKriterien extends ExtendedActiveRecord
 {
+
     use soft;
     use findRecords;
     use errors;
     use modelWithFiles;
+
     /**
      * @inheritdoc
      */
     public static function tableName()
     {
-        return 'audit';
+        return 'audit_has_kriterien';
     }
 
     public function behaviors()
@@ -64,9 +66,10 @@ class Audit extends ExtendedActiveRecord
     public function rules()
     {
         return [
-            [['type'], 'required'],
-            [['created_at', 'updated_at', 'created_by', 'updated_by', 'status'], 'integer'],
-            [['type'], 'string', 'max' => 255],
+            [['kriterien_id', 'audit_id'], 'required'],
+            [['kriterien_id', 'audit_id', 'status', 'created_at', 'updated_at', 'created_by', 'updated_by'], 'integer'],
+            [['audit_id'], 'exist', 'skipOnError' => true, 'targetClass' => Audit::className(), 'targetAttribute' => ['audit_id' => 'id']],
+            [['kriterien_id'], 'exist', 'skipOnError' => true, 'targetClass' => Kriterien::className(), 'targetAttribute' => ['kriterien_id' => 'id']],
         ];
     }
 
@@ -76,8 +79,9 @@ class Audit extends ExtendedActiveRecord
     public function attributeLabels()
     {
         return [
-            'id' => 'ID',
-            'type' => 'Type',
+            'kriterien_id' => 'Kriterien ID',
+            'audit_id' => 'Audit ID',
+            'status' => 'Status',
             'created_at' => 'Created At',
             'updated_at' => 'Updated At',
             'created_by' => 'Created By',
@@ -85,46 +89,19 @@ class Audit extends ExtendedActiveRecord
         ];
     }
 
-    public function oneFields()
-    {
-        $result = [
-            'id' => $this->id,
-            'status' => $this->status,
-            'created_by' => $this->created_by,
-            'created_at' => date('d.m.Y', $this->created_at),
-            'kriteriens' => $this->kriteriens
-        ];
-        return $result;
-    }
-
     /**
-     * @param $result
-     * @return array
+     * @return \yii\db\ActiveQuery
      */
-    public static function allFields($result)
+    public function getAudit()
     {
-        return self::responseAll($result, [
-            'id',
-            'type',
-            'status',
-            'Kriteriens',
-        ]);
+        return $this->hasOne(Audit::className(), ['id' => 'audit_id']);
     }
 
     /**
      * @return \yii\db\ActiveQuery
      */
-    public function getKriteriens()
+    public function getKriterien()
     {
-        return $this->hasMany(Kriterien::className(), ['id' => 'kriterien_id'])
-            ->viaTable('audit_has_kriterien', ['audit_id' => 'id']);
-    }
-
-    /**
-     * @return \yii\db\ActiveQuery
-     */
-    public function getUserAudits()
-    {
-        return $this->hasMany(UserAudit::className(), ['audit_id' => 'id']);
+        return $this->hasOne(Kriterien::className(), ['id' => 'kriterien_id']);
     }
 }

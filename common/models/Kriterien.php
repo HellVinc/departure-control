@@ -16,16 +16,18 @@ use common\components\traits\findRecords;
  * This is the model class for table "kriterien".
  *
  * @property integer $id
- * @property integer $audit_id
+ * @property integer $name
  * @property string $question
- * @property integer $position
+ * @property integer $description
+ * @property integer $employee
+ * @property integer $process_type
  * @property integer $status
  * @property integer $created_at
  * @property integer $updated_at
  * @property integer $created_by
  * @property integer $updated_by
  *
- * @property Audit $audit
+ * @property Audit[] $audits
  */
 class Kriterien extends ExtendedActiveRecord
 {
@@ -33,6 +35,11 @@ class Kriterien extends ExtendedActiveRecord
     use findRecords;
     use errors;
     use modelWithFiles;
+
+    const TYPE_DATE = 1;
+    const TYPE_QUESTION = 2;
+    const TYPE_PHOTO = 3;
+    const TYPE_SIGNATURE= 4;
     /**
      * @inheritdoc
      */
@@ -65,10 +72,9 @@ class Kriterien extends ExtendedActiveRecord
     public function rules()
     {
         return [
-            [['audit_id', 'question', 'position'], 'required'],
-            [['audit_id', 'position', 'status', 'created_at', 'updated_at', 'created_by', 'updated_by'], 'integer'],
-            [['question'], 'string'],
-            [['audit_id'], 'exist', 'skipOnError' => true, 'targetClass' => Audit::className(), 'targetAttribute' => ['audit_id' => 'id']],
+            [['name', 'description', 'process_type', 'employee', 'question'], 'required'],
+            [['status', 'created_at', 'updated_at', 'created_by', 'updated_by'], 'integer'],
+            [['question', 'description'], 'string'],
         ];
     }
 
@@ -79,7 +85,6 @@ class Kriterien extends ExtendedActiveRecord
     {
         return [
             'id' => 'ID',
-            'audit_id' => 'Audit ID',
             'question' => 'Question',
             'position' => 'Position',
             'status' => 'Status',
@@ -90,11 +95,10 @@ class Kriterien extends ExtendedActiveRecord
         ];
     }
 
-    /**
-     * @return \yii\db\ActiveQuery
-     */
-    public function getAudit()
+
+    public function getAudits()
     {
-        return $this->hasOne(Audit::className(), ['id' => 'audit_id']);
+        return $this->hasMany(Audit::className(), ['id' => 'audit_id'])
+            ->viaTable('audit_has_kriterien', ['kriterien_id' => 'id']);
     }
 }
