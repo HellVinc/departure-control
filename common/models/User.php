@@ -79,7 +79,8 @@ class User extends ExtendedActiveRecord implements IdentityInterface
     public function rules()
     {
         return [
-            [['username', 'account_type', 'email'], 'required'],
+            [['account_type'], 'required', 'on' => 'signUp'],
+            [['username', 'email'], 'required'],
             [['account_type', 'status', 'created_at', 'updated_at', 'created_by', 'updated_by'], 'integer'],
             [['username', 'password_reset_token', 'email'], 'string', 'max' => 255],
             [['auth_key'], 'string', 'max' => 32],

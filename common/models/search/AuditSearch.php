@@ -14,7 +14,7 @@ class AuditSearch extends Audit
 {
     public $size = 10;
     public $sort = [
-        'id' => SORT_ASC,
+        'id' => SORT_DESC,
     ];
     /**
      * @inheritdoc
@@ -48,14 +48,7 @@ class AuditSearch extends Audit
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
-            'pagination' => [
-                'pageSize' => $this->size,
-            ],
-            'sort' => [
-                'defaultOrder' => $this->sort
-            ],
         ]);
-
 
         if (!$this->validate()) {
             // uncomment the following line if you do not want to return any records when validation fails

@@ -15,6 +15,7 @@ use yii\db\ActiveRecord;
 /**
  * This is the model class for table "audit_has_kriterien".
  *
+ * @property integer $id
  * @property integer $kriterien_id
  * @property integer $audit_id
  * @property integer $status
@@ -79,6 +80,7 @@ class AuditHasKriterien extends ExtendedActiveRecord
     public function attributeLabels()
     {
         return [
+            'id' => 'ID',
             'kriterien_id' => 'Kriterien ID',
             'audit_id' => 'Audit ID',
             'status' => 'Status',

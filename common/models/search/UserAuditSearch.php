@@ -47,12 +47,6 @@ class UserAuditSearch extends UserAudit
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
-            'pagination' => [
-                'pageSize' => $this->size,
-            ],
-            'sort' => [
-                'defaultOrder' => $this->sort
-            ],
         ]);
 
 

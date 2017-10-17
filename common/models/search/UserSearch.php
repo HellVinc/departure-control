@@ -48,12 +48,6 @@ class UserSearch extends User
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
-            'pagination' => [
-                'pageSize' => $this->size,
-            ],
-            'sort' => [
-                'defaultOrder' => $this->sort
-            ],
         ]);
 
         if (!$this->validate()) {

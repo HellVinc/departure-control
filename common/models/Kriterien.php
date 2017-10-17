@@ -72,7 +72,7 @@ class Kriterien extends ExtendedActiveRecord
     public function rules()
     {
         return [
-            [['name', 'description', 'process_type', 'employee', 'question'], 'required'],
+            [['name', 'process_type', 'employee', 'question'], 'required'],
             [['status', 'created_at', 'updated_at', 'created_by', 'updated_by'], 'integer'],
             [['question', 'description'], 'string'],
         ];

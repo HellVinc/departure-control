@@ -100,11 +100,9 @@ class UserController extends Controller
     public function actionCreate()
     {
         $model = new User();
-
+        $model->scenario = 'signUp';
         if ($model->load(Yii::$app->request->post()) && $model->validate()) {
-            return [
-                'model' => $model->signup(),
-            ];
+            return $model->signup();
         }
         return ['errors' => $model->errors];
     }
@@ -114,15 +112,14 @@ class UserController extends Controller
         $model = new LoginForm();
         if ($model->load(Yii::$app->request->post(), "")) {
             if ($model->login()) {
-                $result = $model;
-                return [
-                    'model' => $result,
-                ];
+                $result = Yii::$app->user->identity->oneFields();
+                return $result;
             }
             return ['error' => 'Invalid login or password'];
         }
         return ['error' => 'Error. Bad request.'];
     }
+
 
     /**
      * Updates an existing User model.
@@ -130,9 +127,9 @@ class UserController extends Controller
      * @param integer $id
      * @return mixed
      */
-    public function actionUpdate($id)
+    public function actionUpdate()
     {
-        $model = $this->findModel($id);
+        $model = $this->findModel(Yii::$app->request->post('id'));
 
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
             return $model;

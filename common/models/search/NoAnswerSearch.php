@@ -48,12 +48,6 @@ class NoAnswerSearch extends NoAnswer
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
-            'pagination' => [
-                'pageSize' => $this->size,
-            ],
-            'sort' => [
-                'defaultOrder' => $this->sort
-            ],
         ]);
 
         if (!$this->validate()) {

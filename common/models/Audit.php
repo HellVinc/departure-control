@@ -24,6 +24,7 @@ use common\components\traits\findRecords;
  * @property integer $updated_by
  *
  * @property Kriterien[] $kriteriens
+ * @property AuditHasKriterien[] $auditHasKriteriens
  * @property UserAudit[] $userAudits
  */
 class Audit extends ExtendedActiveRecord
@@ -107,8 +108,13 @@ class Audit extends ExtendedActiveRecord
             'id',
             'type',
             'status',
-            'Kriteriens',
+            'kriteriens',
         ]);
+    }
+
+    public function getAuditHasKriteriens()
+    {
+        return $this->hasMany(AuditHasKriterien::className(), ['audit_id' => 'id']);
     }
 
     /**
@@ -120,11 +126,19 @@ class Audit extends ExtendedActiveRecord
             ->viaTable('audit_has_kriterien', ['audit_id' => 'id']);
     }
 
+    public static function getKrits()
+    {
+        return Audit::find()
+            ->leftJoin('audit_has_kriterien', 'audit_has_kriterien.audit_id = audit.id')
+            ->leftJoin('kriterien', 'kriterien.id = audit_has_kriterien.kriterien_id')
+            ->all();
+    }
+
     /**
      * @return \yii\db\ActiveQuery
      */
     public function getUserAudits()
     {
-        return $this->hasMany(UserAudit::className(), ['audit_id' => 'id']);
+        return $this->hasMany(UserAudit::className(), ['audit_id' => 'id'])->leftJoin('kriterien', 'kriterien.id = audit_has_kriterien.kriterien_id');
     }
 }

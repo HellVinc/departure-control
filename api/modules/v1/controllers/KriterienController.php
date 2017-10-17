@@ -98,9 +98,9 @@ class KriterienController extends Controller
         $model = new Kriterien();
 
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $model;
+            return $model->oneFields();
         }
-        return ['errors' => $model->errors];
+        return ['errors' => 'Message'];
     }
 
     /**
