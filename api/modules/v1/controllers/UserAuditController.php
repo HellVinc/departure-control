@@ -3,6 +3,7 @@
 namespace api\modules\v1\controllers;
 
 use common\models\Answer;
+use common\models\NoAnswer;
 use Yii;
 use common\models\UserAudit;
 use common\models\search\UserAuditSearch;
@@ -101,10 +102,15 @@ class UserAuditController extends Controller
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
             $data = Yii::$app->request->post('kriterien');
             foreach ($data as $one) {
-                $model = new Answer();
-                if ($model->load($one) && $model->checkFiles()) {
-                    if (!$model->save())
-                        return ['errors' => $model->errors];
+                $answer = new Answer();
+                $answer->user_audit_id = $model->id;
+                if ($answer->load($one) && $answer->save()) {
+                    if ($one['photo']){
+                        $noAnswer = new NoAnswer();
+                        $noAnswer->answer_id = $answer->id;
+                        $noAnswer->description = $one['description'];
+                        $noAnswer->save();
+                    }
                 }
             }
         }
