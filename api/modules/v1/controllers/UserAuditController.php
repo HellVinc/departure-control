@@ -2,9 +2,11 @@
 
 namespace api\modules\v1\controllers;
 
+use common\models\Answer;
 use Yii;
 use common\models\UserAudit;
 use common\models\search\UserAuditSearch;
+use yii\filters\auth\QueryParamAuth;
 use yii\rest\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
@@ -17,17 +19,17 @@ class UserAuditController extends Controller
     public function behaviors()
     {
         $behaviors = parent::behaviors();
-//        $behaviors['authenticator'] = [
-//            'class' => QueryParamAuth::className(),
-//            'tokenParam' => 'auth_key',
-//            'only' => [
-//                'all',
-//                'one',
-//                'create',
-//                'update',
-//                'delete',
-//            ],
-//        ];
+        $behaviors['authenticator'] = [
+            'class' => QueryParamAuth::className(),
+            'tokenParam' => 'auth_key',
+            'only' => [
+                'all',
+                'one',
+                'create',
+                'update',
+                'delete',
+            ],
+        ];
 //        $behaviors['access'] = [
 //            'class' => AccessControl::className(),
 //            'only' => [
@@ -96,9 +98,15 @@ class UserAuditController extends Controller
     public function actionCreate()
     {
         $model = new UserAudit();
-
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $model;
+            $data = Yii::$app->request->post('kriterien');
+            foreach ($data as $one) {
+                $model = new Answer();
+                if ($model->load($one) && $model->checkFiles()) {
+                    if (!$model->save())
+                        return ['errors' => $model->errors];
+                }
+            }
         }
         return ['errors' => $model->errors];
     }
@@ -106,12 +114,11 @@ class UserAuditController extends Controller
     /**
      * Updates an existing UserAudit model.
      * If update is successful, the browser will be redirected to the 'view' page.
-     * @param integer $id
      * @return mixed
      */
-    public function actionUpdate($id)
+    public function actionUpdate()
     {
-        $model = $this->findModel($id);
+        $model = $this->findModel(Yii::$app->request->post('id'));
 
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
             return $model;

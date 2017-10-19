@@ -17,10 +17,11 @@ use common\components\traits\findRecords;
  *
  * @property integer $id
  * @property integer $user_audit_id
+ * @property integer $name
  * @property integer $answer_type
  * @property integer $answer
- * @property integer $start_time
- * @property integer $end_time
+ * @property integer $start_date
+ * @property integer $end_date
  * @property integer $no_type
  * @property integer $status
  * @property integer $created_at
@@ -69,8 +70,9 @@ class Answer extends ExtendedActiveRecord
     public function rules()
     {
         return [
-            [['user_audit_id', 'answer_type', 'start_time', 'end_time'], 'required'],
-            [['user_audit_id', 'answer_type', 'answer', 'start_time', 'end_time', 'no_type', 'status', 'created_at', 'updated_at', 'created_by', 'updated_by'], 'integer'],
+            [['user_audit_id', 'answer_type', 'start_date', 'end_date'], 'required'],
+            [['user_audit_id', 'answer_type', 'start_date', 'end_date', 'no_type', 'status', 'created_at', 'updated_at', 'created_by', 'updated_by'], 'integer'],
+            [['answer'], 'string', 'max' => 255],
             [['user_audit_id'], 'exist', 'skipOnError' => true, 'targetClass' => UserAudit::className(), 'targetAttribute' => ['user_audit_id' => 'id']],
         ];
     }

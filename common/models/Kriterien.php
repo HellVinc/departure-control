@@ -95,6 +95,22 @@ class Kriterien extends ExtendedActiveRecord
         ];
     }
 
+    public function oneFields()
+    {
+        return [
+            'id' => $this->id,
+            'question' => $this->question,
+            'description' => $this->description,
+            'employee' => (int)$this->employee,
+            'process_type' => (int)$this->process_type,
+            'status' => $this->status,
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
+            'created_by' => $this->created_by,
+            'updated_by' => $this->updated_by,
+        ];
+    }
+
 
     public function getAudits()
     {

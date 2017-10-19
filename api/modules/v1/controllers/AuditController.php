@@ -6,6 +6,7 @@ use common\models\AuditHasKriterien;
 use Yii;
 use common\models\Audit;
 use common\models\search\AuditSearch;
+use yii\filters\auth\QueryParamAuth;
 use yii\rest\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
@@ -18,17 +19,18 @@ class AuditController extends Controller
     public function behaviors()
     {
         $behaviors = parent::behaviors();
-//        $behaviors['authenticator'] = [
-//            'class' => QueryParamAuth::className(),
-//            'tokenParam' => 'auth_key',
-//            'only' => [
-//                'all',
-//                'one',
-//                'create',
-//                'update',
-//                'delete',
-//            ],
-//        ];
+        $behaviors['authenticator'] = [
+            'class' => QueryParamAuth::className(),
+            'tokenParam' => 'auth_key',
+            'only' => [
+                'all',
+                'one',
+                'create',
+                'add-kriterien',
+                'update',
+                'delete',
+            ],
+        ];
 //        $behaviors['access'] = [
 //            'class' => AccessControl::className(),
 //            'only' => [
@@ -108,12 +110,18 @@ class AuditController extends Controller
 
     public function actionAddKriterien()
     {
-        $model = new AuditHasKriterien();
+        $kriteriens = Yii::$app->request->post('kriteriens');
+        $audit = Yii::$app->request->post('audit_id');
+        foreach ($kriteriens as $kriterien) {
+            $model = new AuditHasKriterien();
+                $model->kriterien_id = $kriterien['id'];
+                $model->audit_id = $audit;
+                if(!$model->save()){
+                    return $model->errors;
+                }
 
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $model;
         }
-        return ['errors' => $model->errors];
+        return true;
     }
 
     /**

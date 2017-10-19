@@ -48,6 +48,9 @@ class AuditSearch extends Audit
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
+            'sort' => [
+                'defaultOrder' => $this->sort
+            ],
         ]);
 
         if (!$this->validate()) {

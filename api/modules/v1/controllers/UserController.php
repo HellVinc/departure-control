@@ -21,37 +21,37 @@ class UserController extends Controller
     public function behaviors()
     {
         $behaviors = parent::behaviors();
-//        $behaviors['authenticator'] = [
-//            'class' => QueryParamAuth::className(),
-//            'tokenParam' => 'auth_key',
-//            'only' => [
-//                'all',
-//                'one',
+        $behaviors['authenticator'] = [
+            'class' => QueryParamAuth::className(),
+            'tokenParam' => 'auth_key',
+            'only' => [
+                'all',
+                'one',
+                'create',
+                'update',
+                'delete',
+            ],
+        ];
+        $behaviors['access'] = [
+            'class' => AccessControl::className(),
+            'only' => [
 //                'create',
-//                'update',
-//                'delete',
-//            ],
-//        ];
-//        $behaviors['access'] = [
-//            'class' => AccessControl::className(),
-//            'only' => [
-//                'create',
-//                'update',
-//                'delete',
-//            ],
-//            'rules' => [
-//                [
-//                    'actions' => [
+                'update',
+                'delete',
+            ],
+            'rules' => [
+                [
+                    'actions' => [
 //                        'create',
-//                        'update',
-//                        'delete',
-//                    ],
-//                    'allow' => true,
-//                    'roles' => ['admin'],
-//
-//                ],
-//            ],
-//        ];
+                        'update',
+                        'delete',
+                    ],
+                    'allow' => true,
+                    'roles' => ['admin'],
+
+                ],
+            ],
+        ];
 
         $behaviors['verbFilter'] = [
             'class' => VerbFilter::className(),
@@ -100,8 +100,9 @@ class UserController extends Controller
     public function actionCreate()
     {
         $model = new User();
-        $model->scenario = 'signUp';
+//        $model->scenario = 'signUp';
         if ($model->load(Yii::$app->request->post()) && $model->validate()) {
+            $model->account_type = 1;
             return $model->signup();
         }
         return ['errors' => $model->errors];

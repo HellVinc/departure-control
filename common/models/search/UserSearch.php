@@ -14,7 +14,7 @@ class UserSearch extends User
 {
     public $size = 10;
     public $sort = [
-        'id' => SORT_ASC,
+        'id' => SORT_DESC,
     ];
     /**
      * @inheritdoc
@@ -23,7 +23,7 @@ class UserSearch extends User
     {
         return [
             [['id', 'account_type', 'status', 'created_at', 'updated_at', 'created_by', 'updated_by'], 'integer'],
-            [['username', 'auth_key', 'password_hash', 'password_reset_token', 'email'], 'safe'],
+            [['username', 'password_hash', 'password_reset_token', 'email'], 'safe'],
         ];
     }
 
@@ -48,6 +48,9 @@ class UserSearch extends User
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
+            'sort' => [
+                'defaultOrder' => $this->sort
+            ],
         ]);
 
         if (!$this->validate()) {

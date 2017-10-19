@@ -3,10 +3,12 @@
 namespace common\models;
 
 use common\components\helpers\ExtendedActiveRecord;
+use common\components\UploadModel;
 use Yii;
 use yii\behaviors\BlameableBehavior;
 use yii\behaviors\TimestampBehavior;
 use yii\db\ActiveRecord;
+use yii\web\UploadedFile;
 
 /**
  * This is the model class for table "attachment".
@@ -80,4 +82,14 @@ class Attachment extends ExtendedActiveRecord
             'updated_by' => 'Updated By',
         ];
     }
+
+    public static function  uploadFiles($id, $table)
+    {
+        $model = new UploadModel();
+        $model->files = UploadedFile::getInstancesByName('photo');
+        if ($model->uploads($id, $table)) {
+            return $model;
+        }
+    }
+
 }

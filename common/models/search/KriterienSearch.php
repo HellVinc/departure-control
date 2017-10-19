@@ -48,6 +48,9 @@ class KriterienSearch extends Kriterien
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
+            'sort' => [
+                'defaultOrder' => $this->sort
+            ],
         ]);
 
         if (!$this->validate()) {

@@ -66,6 +66,7 @@ class Audit extends ExtendedActiveRecord
     {
         return [
             [['type'], 'required'],
+            [['type'], 'unique'],
             [['created_at', 'updated_at', 'created_by', 'updated_by', 'status'], 'integer'],
             [['type'], 'string', 'max' => 255],
         ];
@@ -117,20 +118,12 @@ class Audit extends ExtendedActiveRecord
         return $this->hasMany(AuditHasKriterien::className(), ['audit_id' => 'id']);
     }
 
-    /**
-     * @return \yii\db\ActiveQuery
-     */
     public function getKriteriens()
     {
-        return $this->hasMany(Kriterien::className(), ['id' => 'kriterien_id'])
-            ->viaTable('audit_has_kriterien', ['audit_id' => 'id']);
-    }
-
-    public static function getKrits()
-    {
-        return Audit::find()
-            ->leftJoin('audit_has_kriterien', 'audit_has_kriterien.audit_id = audit.id')
-            ->leftJoin('kriterien', 'kriterien.id = audit_has_kriterien.kriterien_id')
+        return Kriterien::find()
+            ->leftJoin('audit_has_kriterien', 'audit_has_kriterien.kriterien_id = kriterien.id')
+            ->where(['audit_has_kriterien.audit_id' => $this->id])
+            ->orderBy('audit_has_kriterien.id')
             ->all();
     }
 
@@ -139,6 +132,7 @@ class Audit extends ExtendedActiveRecord
      */
     public function getUserAudits()
     {
-        return $this->hasMany(UserAudit::className(), ['audit_id' => 'id'])->leftJoin('kriterien', 'kriterien.id = audit_has_kriterien.kriterien_id');
+        return $this->hasMany(UserAudit::className(), ['audit_id' => 'id'])
+            ->leftJoin('kriterien', 'kriterien.id = audit_has_kriterien.kriterien_id');
     }
 }

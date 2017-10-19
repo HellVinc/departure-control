@@ -22,7 +22,8 @@ class UserAuditSearch extends UserAudit
     public function rules()
     {
         return [
-            [['id', 'user_id', 'audit_id', 'created_at', 'updated_at', 'created_by', 'updated_by'], 'integer'],
+            [['id', 'user_id', 'start', 'end', 'audit_id', 'created_at', 'updated_at', 'created_by', 'updated_by'], 'integer'],
+            [['name'], 'safe']
         ];
     }
 
@@ -47,6 +48,9 @@ class UserAuditSearch extends UserAudit
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
+            'sort' => [
+                'defaultOrder' => $this->sort
+            ],
         ]);
 
 
@@ -66,6 +70,8 @@ class UserAuditSearch extends UserAudit
             'created_by' => $this->created_by,
             'updated_by' => $this->updated_by,
         ]);
+
+        $query->andFilterWhere(['like', 'name', $this->name]);
 
         return $dataProvider;
     }
