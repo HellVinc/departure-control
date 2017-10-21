@@ -9,6 +9,10 @@ use yii\behaviors\BlameableBehavior;
 use yii\behaviors\TimestampBehavior;
 use yii\db\ActiveRecord;
 use yii\web\UploadedFile;
+use common\components\traits\errors;
+use common\components\traits\modelWithFiles;
+use common\components\traits\soft;
+use common\components\traits\findRecords;
 
 /**
  * This is the model class for table "attachment".
@@ -26,6 +30,11 @@ use yii\web\UploadedFile;
  */
 class Attachment extends ExtendedActiveRecord
 {
+    use soft;
+    use findRecords;
+    use errors;
+    use modelWithFiles;
+
     /**
      * @inheritdoc
      */
@@ -58,7 +67,7 @@ class Attachment extends ExtendedActiveRecord
     public function rules()
     {
         return [
-            [['object_id', 'table', 'extension', 'url'], 'required'],
+            [['object_id', 'table', 'extension'], 'required'],
             [['object_id', 'status', 'created_at', 'updated_at', 'created_by', 'updated_by'], 'integer'],
             [['table', 'extension', 'url'], 'string', 'max' => 255],
         ];
@@ -81,6 +90,45 @@ class Attachment extends ExtendedActiveRecord
             'created_by' => 'Created By',
             'updated_by' => 'Updated By',
         ];
+    }
+
+    public function oneFields()
+    {
+        return [
+            'id' => $this->id,
+            'object_id' => $this->object_id,
+            'table' => $this->table,
+            'extension' => $this->extension,
+            'url' => $this->getUrl(),
+            'created_at' => $this->created_at,
+            'created_by' => $this->created_by,
+        ];
+    }
+
+    /**
+     * @param $result
+     * @return array
+     */
+    public static function allFields($result)
+    {
+        return self::responseAll($result, [
+            'id',
+            'object_id',
+            'table',
+            'extension',
+            'url' => 'Url',
+            'created_at',
+            'created_by',
+        ]);
+    }
+
+    public function getUrl()
+    {
+        if ($this->extension === 'pdf') {
+            return Yii::$app->request->hostInfo. '/files/pdf/' . $this->url;
+        }
+        return Yii::$app->request->hostInfo. '/files/photo/' . $this->url;
+
     }
 
     public static function  uploadFiles($id, $table)

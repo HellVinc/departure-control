@@ -29,14 +29,14 @@ class UploadModel extends Model
 
     public function upload($id, $path)
     {
-        $dir = dirname(Yii::getAlias('@app')) . '/' . $path  . '/' . $id;
+        $dir = dirname(Yii::getAlias('@app')) . '/' . $path . '/' . $id;
         if (!is_dir($dir)) {
             FileHelper::createDirectory($dir);
         }
         if ($this->validate()) {
             $name = hash_file('crc32', $this->imageFile->tempName);
             $this->imageFile->saveAs($dir . '/' . $name . '.' . $this->imageFile->extension);
-            return  $name . '.' . $this->imageFile->extension;
+            return $name . '.' . $this->imageFile->extension;
         }
         return false;
     }
@@ -63,23 +63,28 @@ class UploadModel extends Model
         return false;
     }
 
-    public static function uploadBase($name, $id, $table)
+    public static function uploadBase($name, $extension)
     {
-        $data = str_replace('data:image/jpg;base64,', '', $name);
+        if ($extension === 'pdf') {
+            $path = '/files/pdf/';
+        } else {
+            $path = '/files/photo/';
+        }
+        $data = str_replace('data:image/' . $extension . ';base64,', '', $name);
         $data = str_replace(' ', '+', $data);
         $data = base64_decode($data); // Decode image using base64_decode
-        $file = mt_rand(10000, 900000) . '.jpg';
+        $file = mt_rand(10000, 900000) . '.' . $extension;
 
-        $dir = dirname(Yii::getAlias('@app')) . $table . $id;
+        $dir = dirname(Yii::getAlias('@app')) . $path;
         if (!is_dir($dir)) {
             FileHelper::createDirectory($dir);
         }
 
-        $dir = dirname(Yii::getAlias('@app')) . $table . $id . "/" . $file;
+        $dir = dirname(Yii::getAlias('@app')) . $path . $file;
         if (!file_put_contents($dir, $data)) {
             return false;
         }
-        return  $file;
+        return $file;
 
     }
 }
