@@ -17,6 +17,23 @@ trait soft
         return array_pop($array);
     }
 
+    public static function beginWithZero($id)
+    {
+//        if ($id < 10) {
+//            return '00000' . $id;
+//        }
+//
+//        if ($id < 100) {
+//            return '0000' . $id;
+//        }
+
+        if ($id < 10) {
+            return '00' . $id;
+        }
+
+        return $id < 100 ? '0' . $id : $id;
+    }
+
     # load
 
     public function load($data, $formName = null)

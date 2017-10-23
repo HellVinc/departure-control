@@ -17,8 +17,8 @@ use common\components\traits\findRecords;
  *
  * @property integer $id
  * @property integer $user_audit_id
- * @property integer $name
- * @property integer $answer_type
+ * @property integer $process_type
+ * @property integer $question
  * @property integer $answer
  * @property integer $start_date
  * @property integer $end_date
@@ -70,9 +70,11 @@ class Answer extends ExtendedActiveRecord
     public function rules()
     {
         return [
-            [['user_audit_id', 'answer_type', 'start_date', 'end_date'], 'required'],
-            [['user_audit_id', 'answer_type', 'start_date', 'end_date', 'no_type', 'status', 'created_at', 'updated_at', 'created_by', 'updated_by'], 'integer'],
-            [['answer'], 'string', 'max' => 255],
+            [['user_audit_id', 'question', 'answer', 'start_date'], 'required'],
+            [['question', 'name'], 'string', 'max' => 255],
+            [['answer'], 'string', 'max' => 50],
+            [['data'], 'string'],
+            [['user_audit_id', 'process_type', 'start_date', 'end_date', 'no_type', 'status', 'created_at', 'updated_at', 'created_by', 'updated_by'], 'integer'],
             [['user_audit_id'], 'exist', 'skipOnError' => true, 'targetClass' => UserAudit::className(), 'targetAttribute' => ['user_audit_id' => 'id']],
         ];
     }
@@ -85,10 +87,10 @@ class Answer extends ExtendedActiveRecord
         return [
             'id' => 'ID',
             'user_audit_id' => 'User Audit ID',
-            'answer_type' => 'Answer Type',
+            'process_type' => 'Answer Type',
             'answer' => 'Answer',
-            'start_time' => 'Start Time',
-            'end_time' => 'End Time',
+            'start_date' => 'Start Date',
+            'end_date' => 'End Date',
             'no_type' => 'No Type',
             'status' => 'Status',
             'created_at' => 'Created At',

@@ -2,7 +2,9 @@
 
 namespace common\components;
 
+use common\components\traits\soft;
 use common\models\Attachment;
+use common\models\UserAudit;
 use Yii;
 use yii\base\Model;
 use yii\helpers\FileHelper;
@@ -10,6 +12,7 @@ use yii\web\UploadedFile;
 
 class UploadModel extends Model
 {
+    use soft;
     /**
      * @var UploadedFile[]
      */
@@ -63,17 +66,27 @@ class UploadModel extends Model
         return false;
     }
 
-    public static function uploadBase($name, $extension)
+    public static function uploadBase($base64, $extension, $name)
     {
-        if ($extension === 'pdf') {
-            $path = '/files/pdf/';
-        } else {
-            $path = '/files/photo/';
+        $photoCount = (int)UserAudit::find()
+            ->where(['between', 'created_at', strtotime('today'), time()])
+            ->count();
+
+        if($extension === 'jpg')
+        {
+            $format = $extension;
+            $extension = 'jpeg';
+        }else{
+            $format = $extension;
         }
-        $data = str_replace('data:image/' . $extension . ';base64,', '', $name);
+        $path = '/files/photo/';
+
+
+        $data = str_replace('data:image/' . $extension . ';base64,', '', $base64);
         $data = str_replace(' ', '+', $data);
         $data = base64_decode($data); // Decode image using base64_decode
-        $file = mt_rand(10000, 900000) . '.' . $extension;
+        $file = 'DCF-' . date('Ymd',time()) . '-' . self::beginWithZero($photoCount) . '-' . $name . '.' . $format;
+//        $file = mt_rand(10000, 900000) . '.' . $extension;
 
         $dir = dirname(Yii::getAlias('@app')) . $path;
         if (!is_dir($dir)) {
@@ -85,6 +98,5 @@ class UploadModel extends Model
             return false;
         }
         return $file;
-
     }
 }

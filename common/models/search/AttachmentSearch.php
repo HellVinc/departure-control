@@ -64,13 +64,13 @@ class AttachmentSearch extends Attachment
 
         // grid filtering conditions
         $query->andFilterWhere([
-            'id' => $this->id,
+            'attachment.id' => $this->id,
             'object_id' => $this->object_id,
-            'status' => $this->status,
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
-            'created_by' => $this->created_by,
-            'updated_by' => $this->updated_by,
+            'attachment.status' => $this->status,
+            'attachment.created_at' => $this->created_at,
+            'attachment.updated_at' => $this->updated_at,
+            'attachment.created_by' => $this->created_by,
+            'attachment.updated_by' => $this->updated_by,
         ]);
 
         $query->andFilterWhere(['like', 'table', $this->table])

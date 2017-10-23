@@ -3,7 +3,9 @@
 namespace api\modules\v1\controllers;
 
 use api\modules\v1\modelForms\SignupForm;
+use common\models\Attachment;
 use common\models\LoginForm;
+use kartik\mpdf\Pdf;
 use Yii;
 use common\models\User;
 use common\models\search\UserSearch;
@@ -66,6 +68,24 @@ class UserController extends Controller
         ];
 
         return $behaviors;
+    }
+
+    public function actionTest()
+    {
+        $reportTitle = 'name';
+        $reportBody = User::find()->where(['status' => 10])->all();
+        $reportTemplate = '@api/modules/v1/views/default/index';
+        $content = Yii::$app->controller->renderPartial($reportTemplate, [
+            'rechnung' => $reportBody,
+            'title' => $reportTitle
+        ]);
+
+        $pdf = new Pdf();
+        $mpdf = $pdf->api; // fetches mpdf api
+
+        $mpdf->title = $reportTitle;
+        $mpdf->WriteHtml($content); // call mpdf write html
+        $mpdf->Output($reportTitle . '.pdf', 'I');
     }
 
     /**

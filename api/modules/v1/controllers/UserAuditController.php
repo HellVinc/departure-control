@@ -2,7 +2,9 @@
 
 namespace api\modules\v1\controllers;
 
+use common\components\UploadModel;
 use common\models\Answer;
+use common\models\Attachment;
 use common\models\NoAnswer;
 use Yii;
 use common\models\UserAudit;
@@ -99,30 +101,60 @@ class UserAuditController extends Controller
     public function actionCreate()
     {
         $model = new UserAudit();
+        $model->user_id = Yii::$app->user->id;
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
             $data = Yii::$app->request->post('kriterien');
             foreach ($data as $one) {
                 $answer = new Answer();
                 $answer->user_audit_id = $model->id;
                 if ($answer->load($one) && $answer->save()) {
-                    if ($one['photo']){
+                    if($answer->process_type == 4){
+                        $file = new Attachment();
+                        $file->object_id = $answer->id;
+                        $file->table = 'user_audit';
+                        $file->extension = $one['extention'];
+                        $file->url = UploadModel::uploadBase($one['signature'], $one['extention'], mt_rand(10000, 900000));
+                        $file->save();
+                    }
+                    if($answer->process_type == 3){
+                        $file = new Attachment();
+                        $file->object_id = $answer->id;
+                        $file->table = 'answer';
+                        $file->extension = $one['extention'];
+                        $file->url = UploadModel::uploadBase($one['signature'], $one['extention'], mt_rand(10000, 900000));
+                        $file->save();
+                    }
+                    if ($one['answer'] == 'false') {
                         $noAnswer = new NoAnswer();
                         $noAnswer->answer_id = $answer->id;
                         $noAnswer->description = $one['description'];
-                        $noAnswer->save();
-                    }
-                }
+                        if(isset($one['photo'])){
+                            UploadModel::uploadBase($one['photo'], $one['extention'], $one['name']);
+                        }
+                        if(!$noAnswer->save()){
+                            return $noAnswer->errors;
+                        }
+                        if($answer->no_type === 2){
+                            return 1;
+                        }
+                    }else
+                    return 2;
+                }else
+                return $model->errors;
             }
+            return true;
         }
         return ['errors' => $model->errors];
     }
+
 
     /**
      * Updates an existing UserAudit model.
      * If update is successful, the browser will be redirected to the 'view' page.
      * @return mixed
      */
-    public function actionUpdate()
+    public
+    function actionUpdate()
     {
         $model = $this->findModel(Yii::$app->request->post('id'));
 
@@ -137,7 +169,8 @@ class UserAuditController extends Controller
      * If deletion is successful, the browser will be redirected to the 'index' page.
      * @return mixed
      */
-    public function actionDelete()
+    public
+    function actionDelete()
     {
         return $this->findModel(Yii::$app->request->post('id'))->delete();
     }
@@ -149,7 +182,8 @@ class UserAuditController extends Controller
      * @return UserAudit the loaded model
      * @throws NotFoundHttpException if the model cannot be found
      */
-    protected function findModel($id)
+    protected
+    function findModel($id)
     {
         if (($model = UserAudit::findOne($id)) !== null) {
             if ($model->status !== 0) {

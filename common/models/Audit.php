@@ -11,6 +11,7 @@ use common\components\traits\errors;
 use common\components\traits\modelWithFiles;
 use common\components\traits\soft;
 use common\components\traits\findRecords;
+use yii\db\Query;
 
 /**
  * This is the model class for table "audit".
@@ -118,8 +119,16 @@ class Audit extends ExtendedActiveRecord
         return $this->hasMany(AuditHasKriterien::className(), ['audit_id' => 'id']);
     }
 
+
+//    public function getKriteriens()
+//    {
+//        return $this->hasMany(Kriterien::className(), ['id' => 'kriterien_id'])
+//            ->viaTable('audit_has_kriterien', ['audit_id' => 'id'])->select('audit_has_kriterien.*')->from('audit_has_kriterien')->orderBy('audit_has_kriterien.id');
+//    }
+
     public function getKriteriens()
     {
+
         return Kriterien::find()
             ->leftJoin('audit_has_kriterien', 'audit_has_kriterien.kriterien_id = kriterien.id')
             ->where(['audit_has_kriterien.audit_id' => $this->id])
@@ -132,7 +141,6 @@ class Audit extends ExtendedActiveRecord
      */
     public function getUserAudits()
     {
-        return $this->hasMany(UserAudit::className(), ['audit_id' => 'id'])
-            ->leftJoin('kriterien', 'kriterien.id = audit_has_kriterien.kriterien_id');
+        return $this->hasMany(UserAudit::className(), ['audit_id' => 'id'])->leftJoin('kriterien', 'kriterien.id = audit_has_kriterien.kriterien_id');
     }
 }

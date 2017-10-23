@@ -27,6 +27,8 @@ use common\components\traits\findRecords;
  * @property integer $updated_at
  * @property integer $created_by
  * @property integer $updated_by
+ *
+ * @property Answer $answer
  */
 class Attachment extends ExtendedActiveRecord
 {
@@ -99,6 +101,7 @@ class Attachment extends ExtendedActiveRecord
             'object_id' => $this->object_id,
             'table' => $this->table,
             'extension' => $this->extension,
+            'name' => $this->getName(),
             'url' => $this->getUrl(),
             'created_at' => $this->created_at,
             'created_by' => $this->created_by,
@@ -114,6 +117,7 @@ class Attachment extends ExtendedActiveRecord
         return self::responseAll($result, [
             'id',
             'object_id',
+            'name',
             'table',
             'extension',
             'url' => 'Url',
@@ -122,13 +126,23 @@ class Attachment extends ExtendedActiveRecord
         ]);
     }
 
+    public function getName()
+    {
+        $name = pathinfo($this->getUrl());
+        return $name['filename'];
+    }
+
     public function getUrl()
     {
         if ($this->extension === 'pdf') {
             return Yii::$app->request->hostInfo. '/files/pdf/' . $this->url;
         }
         return Yii::$app->request->hostInfo. '/files/photo/' . $this->url;
+    }
 
+    public function getFileCount($table, $id)
+    {
+        return (int)self::find()->where(['object_id' => $id])->andWhere(['table' => $table])->count();
     }
 
     public static function  uploadFiles($id, $table)
@@ -140,4 +154,8 @@ class Attachment extends ExtendedActiveRecord
         }
     }
 
+    public function getAnswer()
+    {
+        return $this->hasOne(Answer::className(), ['id' => 'object_id']);
+    }
 }

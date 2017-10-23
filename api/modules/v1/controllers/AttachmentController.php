@@ -100,7 +100,7 @@ class AttachmentController extends Controller
 
         if ($model->load(Yii::$app->request->post())) {
 
-            $result = UploadModel::uploadBase(Yii::$app->request->post('file'), $model->extension);
+            $result = UploadModel::uploadBase(Yii::$app->request->post('file'), $model->extension, mt_rand(10000, 900000));
             $model->url = $result;
             $model->save();
             return $model->oneFields();

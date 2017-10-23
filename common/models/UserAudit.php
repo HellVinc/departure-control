@@ -19,8 +19,6 @@ use common\components\traits\findRecords;
  * @property integer $name
  * @property integer $user_id
  * @property integer $audit_id
- * @property integer $start
- * @property integer $end
  * @property integer $status
  * @property integer $created_at
  * @property integer $updated_at
@@ -68,7 +66,7 @@ class UserAudit extends ExtendedActiveRecord
     public function rules()
     {
         return [
-            [['user_id', 'audit_id', 'name', 'start_date', 'end_date'], 'required'],
+            [['audit_id', 'name'], 'required'],
             [['user_id', 'audit_id', 'status', 'created_at', 'updated_at', 'created_by', 'updated_by'], 'integer'],
             [['name'], 'string', 'max' => 255],
             [['audit_id'], 'exist', 'skipOnError' => true, 'targetClass' => Audit::className(), 'targetAttribute' => ['audit_id' => 'id']],
@@ -91,12 +89,6 @@ class UserAudit extends ExtendedActiveRecord
             'created_by' => 'Created By',
             'updated_by' => 'Updated By',
         ];
-    }
-
-    public function setName()
-    {
-        $count = (int)UserAudit::find()->where(['>', $this->created_at, strtotime('today')])->count();
-        return 'DCP'.'-'.date('Y-m-d').'-'.$count.'-'.$this->name;
     }
 
     /**

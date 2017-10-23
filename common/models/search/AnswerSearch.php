@@ -22,8 +22,9 @@ class AnswerSearch extends Answer
     public function rules()
     {
         return [
-            [['id', 'user_audit_id', 'answer', 'no_type', 'status', 'created_at', 'updated_at', 'created_by', 'updated_by'], 'integer'],
-        ];
+            [['id', 'user_audit_id', 'answer', 'process_type', 'start_date', 'end_date', 'no_type', 'status', 'created_at', 'updated_at', 'created_by', 'updated_by'], 'integer'],
+            [['answer', 'question'], 'safe']
+            ];
     }
 
     /**
@@ -70,6 +71,9 @@ class AnswerSearch extends Answer
             'created_by' => $this->created_by,
             'updated_by' => $this->updated_by,
         ]);
+
+        $query->andFilterWhere(['like', 'answer', $this->answer])
+            ->andFilterWhere(['like', 'question', $this->question]);
 
         return $dataProvider;
     }

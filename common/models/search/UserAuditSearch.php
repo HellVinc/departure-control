@@ -22,7 +22,7 @@ class UserAuditSearch extends UserAudit
     public function rules()
     {
         return [
-            [['id', 'user_id', 'start', 'end', 'audit_id', 'created_at', 'updated_at', 'created_by', 'updated_by'], 'integer'],
+            [['id', 'user_id', 'audit_id', 'created_at', 'updated_at', 'created_by', 'updated_by'], 'integer'],
             [['name'], 'safe']
         ];
     }
