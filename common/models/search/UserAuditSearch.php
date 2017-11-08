@@ -2,6 +2,7 @@
 
 namespace common\models\search;
 
+use common\models\User;
 use Yii;
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
@@ -12,7 +13,7 @@ use common\models\UserAudit;
  */
 class UserAuditSearch extends UserAudit
 {
-    public $size = 10;
+    public $size = 10000;
     public $sort = [
         'id' => SORT_ASC,
     ];
@@ -43,11 +44,13 @@ class UserAuditSearch extends UserAudit
     public function search()
     {
         $query = UserAudit::find();
+//            ->where(['created_by' => User::adminId()]);
 
         // add conditions that should always apply here
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
+            'pagination' => false,
             'sort' => [
                 'defaultOrder' => $this->sort
             ],

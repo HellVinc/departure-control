@@ -17,7 +17,13 @@ use yii\web\IdentityInterface;
  * This is the model class for table "user".
  *
  * @property integer $id
+ * @property integer $first_name
+ * @property integer $last_name
+ * @property integer $firma
  * @property string $username
+ * @property string $phone
+ * @property string $activation_code
+ * @property string $sub_end
  * @property integer $account_type
  * @property string $auth_key
  * @property string $password_hash
@@ -79,13 +85,14 @@ class User extends ExtendedActiveRecord implements IdentityInterface
     public function rules()
     {
         return [
-            [['account_type'], 'required', 'on' => 'signUp'],
-            [['username', 'email'], 'required'],
-            [['account_type', 'status', 'created_at', 'updated_at', 'created_by', 'updated_by'], 'integer'],
-            [['username', 'password_reset_token', 'email'], 'string', 'max' => 255],
+            [['account_type', 'username', 'password'], 'required', 'on' => 'create'],
+            [['first_name', 'last_name', 'email', 'phone', 'firma'], 'required', 'on' => 'register'],
+            [['account_type', 'activation_code', 'sub_end', 'status', 'created_at', 'updated_at', 'created_by', 'updated_by'], 'integer'],
+            [['username', 'first_name', 'last_name', 'firma', 'password_reset_token', 'email'], 'string', 'max' => 255],
             [['auth_key'], 'string', 'max' => 32],
             ['password', 'required', 'on' => 'signUp'],
             ['password', 'string', 'min' => 6],
+            [['phone'], 'string', 'max' => 13],
             [['username'], 'unique'],
             [['email'], 'unique'],
             [['password_reset_token'], 'unique'],
@@ -119,10 +126,45 @@ class User extends ExtendedActiveRecord implements IdentityInterface
 //            return null;
 //        }
         $this->setPassword($this->password);
+
+        return $this->save() ? $this->oneFields() : $this->errors;
+    }
+
+    public function register()
+    {
+//        if (!$this->validate()) {
+//            return null;
+//        }
         $this->generateAuthKey();
 
-        return $this->save() ? $this : $this->errors;
+        return $this->save() ? $this->oneFields() : $this->errors;
     }
+
+    public function oneFields()
+    {
+        return self::getFields($this, [
+            'id',
+            'username',
+            'account_type',
+            'sub_end',
+            'email',
+            'auth_key',
+            'created_at',
+            'created_by'
+        ]);
+    }
+
+    public static function sendMail($mail, $pass)
+    {
+        return Yii::$app->mailer->compose()
+            ->setFrom('admin@DC.com')
+            ->setTo($mail)
+            ->setSubject('TestReg')
+            ->setTextBody($pass)
+            ->send();
+    }
+
+
 
     /**
      * @inheritdoc

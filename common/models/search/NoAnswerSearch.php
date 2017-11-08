@@ -2,6 +2,7 @@
 
 namespace common\models\search;
 
+use common\models\User;
 use Yii;
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
@@ -43,11 +44,13 @@ class NoAnswerSearch extends NoAnswer
     public function search()
     {
         $query = NoAnswer::find();
+//            ->where(['created_by' => User::adminId()]);
 
         // add conditions that should always apply here
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
+            'pagination' => false,
             'sort' => [
                 'defaultOrder' => $this->sort
             ],

@@ -18,7 +18,6 @@ use common\components\traits\findRecords;
  * @property integer $id
  * @property integer $answer_id
  * @property string $description
- * @property string $photo
  * @property integer $status
  * @property integer $created_at
  * @property integer $updated_at
@@ -67,7 +66,7 @@ class NoAnswer extends ExtendedActiveRecord
         return [
             [['answer_id', 'description'], 'required'],
             [['answer_id', 'status', 'created_at', 'updated_at', 'created_by', 'updated_by'], 'integer'],
-            [['description', 'photo'], 'string', 'max' => 255],
+            [['description'], 'string', 'max' => 255],
             [['answer_id'], 'exist', 'skipOnError' => true, 'targetClass' => Answer::className(), 'targetAttribute' => ['answer_id' => 'id']],
         ];
     }
@@ -96,5 +95,14 @@ class NoAnswer extends ExtendedActiveRecord
     public function getAnswer()
     {
         return $this->hasOne(Answer::className(), ['id' => 'answer_id']);
+    }
+
+    public static function modelSave($data)
+    {
+        $model = new self;
+        if($model->load($data) && $model->save()){
+            return $model;
+        }
+        return $model->errors;
     }
 }

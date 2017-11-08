@@ -43,11 +43,13 @@ class UserSearch extends User
     public function search()
     {
         $query = User::find();
+//            ->where(['created_by' => User::adminId()]);
 
         // add conditions that should always apply here
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
+            'pagination' => false,
             'sort' => [
                 'defaultOrder' => $this->sort
             ],

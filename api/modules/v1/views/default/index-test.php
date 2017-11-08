@@ -5,6 +5,7 @@
 $totalCost = 0;
 $iterator = 1;
 
+
 ?>
 <head>
     <link rel="stylesheet" href="/vendor/bower/bootstrap/css/bootstrap.min.css">
@@ -20,7 +21,7 @@ $iterator = 1;
 <div class="row" style="bottom: 15px; position: absolute; width: 100%">
     <div class="col-xs-3" style="font-size: 12px; float:left; width: 40%">
         <div style="width: 100%; ">
-            <b><?= $answers['name'] ?></b>
+            <b><?= $audit . $answers['name'] ?></b>
             <br><b><?= $username ?></b>
         </div>
     </div>
@@ -44,13 +45,14 @@ $iterator = 1;
 <div class="container-fluid" style="top: 150px">
     <div class="row">
         <div class="col-md-7" style="font-size: 12px; height: 30px;">
-            <span><b>Protokoll zur <?= $answers['name'] ?>:</b></span> <?= $audit ?>
+            <span><b>Protokoll zur <?= $name ?>:</b></span> <?= $audit ?>
         </div>
     </div>
     <table class="table" style="text-align: left; margin-top: 40px">
         <thead>
         <tr>
-            <th style="width: 100px; padding-bottom: 5px; text-align: left; border-bottom: 1px solid #ddd;">Vorgang:</th>
+            <th style="width: 100px; padding-bottom: 5px; text-align: left; border-bottom: 1px solid #ddd;">Vorgang:
+            </th>
             <th style="width: 100px; padding-bottom: 5px; text-align: left; border-bottom: 1px solid #ddd;">Uhrzeit:
             </th>
             <th style="width: 150px; padding-bottom: 5px; text-align: left; border-bottom: 1px solid #ddd;">Prozess:
@@ -71,19 +73,27 @@ $iterator = 1;
                     <?= $iterator++ . '.' ?>
                 </td>
                 <td style=" height: 35px; border-bottom: 1px solid #ddd;">
-                    <?= date('H:i:s', $answer['start_date']) ?>
+                    <?= date('H:i:s', 123123) ?>
                 </td>
                 <td style=" height: 35px; border-bottom: 1px solid #ddd;">
-                    <?= 'something Aufforderung' ?>
+                    <?php if ($answer['process_type'] == 1) {
+                        echo 'Daten';
+                    } elseif ($answer['process_type'] == 2) {
+                        echo 'Ja/Nein';
+                    } elseif ($answer['process_type'] == 3) {
+                        echo 'Foto';
+                    } elseif ($answer['process_type'] == 4) {
+                        echo 'Unterschrift';
+                    } ?>
                 </td>
                 <td style=" height: 35px; border-bottom: 1px solid #ddd;">
-                    <?= isset($answer['question'])?$answer['question']:"" ?>
+                    <?= isset($answer['question']) ? $answer['question'] : "" ?>
                 </td>
                 <td style=" height: 35px; border-bottom: 1px solid #ddd;">
-                    <?= isset($answer['answer'])?$answer['answer']:"" ?>
+                    <?= isset($answer['answer']) ? $answer['answer'] : "" ?>
                 </td>
                 <td style=" height: 35px; border-bottom: 1px solid #ddd;">
-                    <?= isset($answer['data'])?$answer['data']:"" ?>
+                    <?= isset($answer['data']) ? $answer['data'] : "" ?>
                 </td>
             </tr>
         <?php endforeach; ?>
@@ -102,14 +112,14 @@ $iterator = 1;
     <div class="row" style="font-size: 10px;">
         <div class="col-xs-3" style="float:left; width: 50%">
             <div style="width: 80%; ">
-                <img  src="<?= $signature['0'] ?>" >
+                <img src="<?= $signature['0'] ?>">
                 <br>Unterschrift Absender
             </div>
 
         </div>
         <div class="col-xs-3" style="float:right; width: 50%">
             <div style="width: 80%; float: right">
-                <img style="width: 100%" src="<?= $signature['1'] ?>" >
+                <img src="<?= $signature['1'] ?>">
                 <br> Unterschrift Frachtführer
             </div>
         </div>

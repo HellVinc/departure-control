@@ -2,11 +2,13 @@
 
 namespace api\modules\v1\controllers;
 
+use common\models\AuditHasKriterien;
 use Yii;
 use common\models\Kriterien;
 use common\models\search\KriterienSearch;
 use yii\filters\auth\QueryParamAuth;
 use yii\rest\Controller;
+use yii\web\HttpException;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
 
@@ -74,8 +76,8 @@ class KriterienController extends Controller
         $dataProvider = $model->searchAll(Yii::$app->request->get());
         return [
             'models' => Kriterien::allFields($dataProvider->getModels()),
-            'page_count' => $dataProvider->pagination->pageCount,
-            'page' => $dataProvider->pagination->page + 1,
+//            'page_count' => $dataProvider->pagination->pageCount,
+//            'page' => $dataProvider->pagination->page + 1,
             'count_model' => $dataProvider->getTotalCount()
         ];
     }
@@ -126,7 +128,13 @@ class KriterienController extends Controller
      */
     public function actionDelete()
     {
-        return $this->findModel(Yii::$app->request->post('id'))->delete(false);
+        $id = Yii::$app->request->post('id');
+        $count = AuditHasKriterien::find()->where(['kriterien_id' => $id])->count();
+
+        if($count > 0){
+            throw new HttpException(403, 'false');
+        }
+        return $this->findModel($id)->delete(false);
     }
 
     /**

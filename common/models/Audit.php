@@ -12,6 +12,7 @@ use common\components\traits\modelWithFiles;
 use common\components\traits\soft;
 use common\components\traits\findRecords;
 use yii\db\Query;
+use yii\helpers\ArrayHelper;
 
 /**
  * This is the model class for table "audit".
@@ -34,6 +35,7 @@ class Audit extends ExtendedActiveRecord
     use findRecords;
     use errors;
     use modelWithFiles;
+
     /**
      * @inheritdoc
      */
@@ -95,7 +97,7 @@ class Audit extends ExtendedActiveRecord
             'status' => $this->status,
             'created_by' => $this->created_by,
             'created_at' => date('d.m.Y', $this->created_at),
-            'kriteriens' => $this->kriteriens
+            'kriteriens' => $this->au
         ];
         return $result;
     }
@@ -119,21 +121,30 @@ class Audit extends ExtendedActiveRecord
         return $this->hasMany(AuditHasKriterien::className(), ['audit_id' => 'id']);
     }
 
-
-//    public function getKriteriens()
-//    {
-//        return $this->hasMany(Kriterien::className(), ['id' => 'kriterien_id'])
-//            ->viaTable('audit_has_kriterien', ['audit_id' => 'id'])->select('audit_has_kriterien.*')->from('audit_has_kriterien')->orderBy('audit_has_kriterien.id');
-//    }
-
     public function getKriteriens()
     {
-
-        return Kriterien::find()
+        $model = Kriterien::find()
             ->leftJoin('audit_has_kriterien', 'audit_has_kriterien.kriterien_id = kriterien.id')
             ->where(['audit_has_kriterien.audit_id' => $this->id])
-            ->orderBy('audit_has_kriterien.id')
-            ->all();
+            ->orderBy('audit_has_kriterien.id')->all();
+
+        return ArrayHelper::toArray($model, [
+            Kriterien::className() => [
+                'id',
+                'name',
+                'question',
+                'description',
+                'employee',
+                'process_type',
+                'status',
+                'created_at',
+                'updated_at',
+                'created_by' => function ($model) {
+                    /** @var Kriterien $model */
+                    return User::find()->where(['id' => $model->created_by])->one()->username;
+                },
+                'updated_by'
+            ]]);
     }
 
     /**

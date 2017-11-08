@@ -3,6 +3,7 @@
 namespace common\models;
 
 use common\components\helpers\ExtendedActiveRecord;
+use common\components\UploadModel;
 use Yii;
 use yii\behaviors\BlameableBehavior;
 use yii\behaviors\TimestampBehavior;
@@ -38,6 +39,7 @@ class Answer extends ExtendedActiveRecord
     use findRecords;
     use errors;
     use modelWithFiles;
+
     /**
      * @inheritdoc
      */
@@ -70,7 +72,7 @@ class Answer extends ExtendedActiveRecord
     public function rules()
     {
         return [
-            [['user_audit_id', 'question', 'answer', 'start_date'], 'required'],
+            [['user_audit_id', 'question', 'answer', 'start_date', 'process_type'], 'required'],
             [['question', 'name'], 'string', 'max' => 255],
             [['answer'], 'string', 'max' => 50],
             [['data'], 'string'],
@@ -100,6 +102,57 @@ class Answer extends ExtendedActiveRecord
         ];
     }
 
+    public static function answerHandler($data, $id)
+    {
+        $model = new self();
+        $model->user_audit_id = $id;
+        if($model->load($data) && $model->save()){
+            if($model->no_type == 2 || $model->no_type == 1){
+                $noAnswer = new NoAnswer();
+                $noAnswer->answer_id = $model->id;
+                $noAnswer->description = $data['description'];
+                if($noAnswer->save())
+                 return $noAnswer->errors;
+            }
+            if(isset($data['photo'])){
+                 Attachment::saveFile($data, $id);
+            }
+            return true;
+        }
+        return $model->errors;
+    }
+
+
+
+
+    public function checkProccess_type()
+    {
+        $file = new Attachment();
+        $file->object_id = $this->id;
+        $file->table = 'user_audit';
+        $photoCount = $this->checkPhotoCount();
+        switch ($this->process_type){
+            case 3:
+                $photoCount++;
+//                $file->url = UploadModel::uploadBase($one['photo'], $one['extension'], $this->userAudit->name, $photoCount);
+                return $file->save();
+
+            case 4:
+                $photoCount++;
+
+        }
+    }
+
+    /**
+     * @return int
+     */
+    public function checkPhotoCount()
+    {
+        return (int)self::find()->leftJoin('attachment', 'attachment.object_id = answer.id')->where([
+            'answer.user_audit_id' => $this->id,
+        ])->count();
+    }
+
     /**
      * @return \yii\db\ActiveQuery
      */
@@ -114,5 +167,10 @@ class Answer extends ExtendedActiveRecord
     public function getNoAnswers()
     {
         return $this->hasMany(NoAnswer::className(), ['answer_id' => 'id']);
+    }
+
+    public function saveModel()
+    {
+        $this->save();
     }
 }

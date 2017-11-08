@@ -28,6 +28,7 @@ use common\components\traits\findRecords;
  * @property integer $updated_by
  *
  * @property Audit[] $audits
+ * @property AuditHasKriterien[] $auditHasKriteriens
  */
 class Kriterien extends ExtendedActiveRecord
 {
@@ -36,7 +37,7 @@ class Kriterien extends ExtendedActiveRecord
     use errors;
     use modelWithFiles;
 
-    const TYPE_DATE = 1;
+    const TYPE_DATA = 1;
     const TYPE_QUESTION = 2;
     const TYPE_PHOTO = 3;
     const TYPE_SIGNATURE= 4;
@@ -73,7 +74,7 @@ class Kriterien extends ExtendedActiveRecord
     {
         return [
             [['name', 'process_type', 'employee', 'question'], 'required'],
-            [['status', 'created_at', 'updated_at', 'created_by', 'updated_by'], 'integer'],
+            [['created_at', 'updated_at', 'created_by', 'updated_by'], 'integer'],
             [['question', 'description'], 'string'],
         ];
     }
@@ -99,6 +100,7 @@ class Kriterien extends ExtendedActiveRecord
     {
         return [
             'id' => $this->id,
+            'name' => $this->name,
             'question' => $this->question,
             'description' => $this->description,
             'employee' => (int)$this->employee,
@@ -111,10 +113,20 @@ class Kriterien extends ExtendedActiveRecord
         ];
     }
 
+//    public function getCreated_by()
+//    {
+//        return User::find()->where(['id' => $this->created_by])->one()->username;
+//    }
+
 
     public function getAudits()
     {
         return $this->hasMany(Audit::className(), ['id' => 'audit_id'])
             ->viaTable('audit_has_kriterien', ['kriterien_id' => 'id']);
+    }
+
+    public function getAuditHasKriteriens()
+    {
+        return $this->hasMany(AuditHasKriterien::className(), ['kriterien_id' => 'id']);
     }
 }

@@ -6,6 +6,8 @@ use common\components\UploadModel;
 use common\models\Answer;
 use common\models\Attachment;
 use common\models\NoAnswer;
+use common\models\User;
+use kartik\mpdf\Pdf;
 use Yii;
 use common\models\UserAudit;
 use common\models\search\UserAuditSearch;
@@ -28,6 +30,7 @@ class UserAuditController extends Controller
             'only' => [
                 'all',
                 'one',
+                'new-create',
                 'create',
                 'update',
                 'delete',
@@ -60,6 +63,7 @@ class UserAuditController extends Controller
                 'all' => ['get'],
                 'one' => ['get'],
                 'create' => ['post'],
+                'new-create' => ['post'],
                 'update' => ['post'],
                 'delete' => ['post'],
             ],
@@ -78,8 +82,8 @@ class UserAuditController extends Controller
         $dataProvider = $model->searchAll(Yii::$app->request->get());
         return [
             'models' => UserAudit::allFields($dataProvider->getModels()),
-            'page_count' => $dataProvider->pagination->pageCount,
-            'page' => $dataProvider->pagination->page + 1,
+//            'page_count' => $dataProvider->pagination->pageCount,
+//            'page' => $dataProvider->pagination->page + 1,
             'count_model' => $dataProvider->getTotalCount()
         ];
     }
@@ -93,58 +97,154 @@ class UserAuditController extends Controller
         return $this->findModel(Yii::$app->request->get('id'));
     }
 
+    public function actionCreate()
+    {
+        foreach (Yii::$app->request->post() as $audit) {
+            $signature = [];
+            $model = new UserAudit();
+            if ($model->load($audit) && $model->saveModel()) {
+                foreach ($audit['kriterien'] as $one) {
+                    Answer::answerHandler($one, $model->id);
+                    if(isset($one['signature'])){
+                        $signature[] = Attachment::saveFile($one, $model->id);
+                    }
+                }
+            } else {
+                return $model->errors;
+            }
+            $username = User::findOne(Yii::$app->user->id);
+            $reportTemplate = '@api/modules/v1/views/default/index-test';
+            $content = Yii::$app->controller->renderPartial($reportTemplate, [
+                'answers' => $audit,
+                'username' => $username->username,
+                'audit' => 'DCP-' . date('Ymd', time()) . '-' . UserAudit::beginWithZero($model->count_per_date),
+                'signature' => $signature,
+                'name' => $model->name
+            ]);
+//
+            $pdf = new Pdf();
+            $mpdf = $pdf->api; // fetches mpdf api
+            $mpdf->showImageErrors = true;
+            $path = Yii::getAlias('@files') . '/pdf/' . $model->getName();
+
+            $mpdf->WriteHtml($content); // call mpdf write html
+            $mpdf->Output($path . '.pdf', 'F');
+            $file = new Attachment();
+            $file->object_id = $model->id;
+            $file->table = 'user_audit';
+            $file->extension = 'pdf';
+            $file->url = $model->getName() . '.' . 'pdf';
+            if (!$file->save())
+                return $file->errors;
+        }
+        return true;
+    }
+
     /**
      * Creates a new UserAudit model.
      * If creation is successful, the browser will be redirected to the 'view' page.
      * @return mixed
      */
-    public function actionCreate()
+    public function actionNewCreate()
     {
-        $model = new UserAudit();
-        $model->user_id = Yii::$app->user->id;
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            $data = Yii::$app->request->post('kriterien');
-            foreach ($data as $one) {
-                $answer = new Answer();
-                $answer->user_audit_id = $model->id;
-                if ($answer->load($one) && $answer->save()) {
-                    if($answer->process_type == 4){
-                        $file = new Attachment();
-                        $file->object_id = $answer->id;
-                        $file->table = 'user_audit';
-                        $file->extension = $one['extention'];
-                        $file->url = UploadModel::uploadBase($one['signature'], $one['extention'], mt_rand(10000, 900000));
-                        $file->save();
-                    }
-                    if($answer->process_type == 3){
-                        $file = new Attachment();
-                        $file->object_id = $answer->id;
-                        $file->table = 'answer';
-                        $file->extension = $one['extention'];
-                        $file->url = UploadModel::uploadBase($one['signature'], $one['extention'], mt_rand(10000, 900000));
-                        $file->save();
-                    }
-                    if ($one['answer'] == 'false') {
-                        $noAnswer = new NoAnswer();
-                        $noAnswer->answer_id = $answer->id;
-                        $noAnswer->description = $one['description'];
-                        if(isset($one['photo'])){
-                            UploadModel::uploadBase($one['photo'], $one['extention'], $one['name']);
+        $audits = Yii::$app->request->post();
+        foreach ($audits as $audit) {
+            $signature = [];
+            $model = new UserAudit();
+            $auditCount = (int)UserAudit::find()
+                ->where(['between', 'created_at', strtotime('today'), time()])
+                ->count();
+            $name = 'DCP-' . date('Ymd', time()) . '-' . UserAudit::beginWithZero($auditCount) . '-' . $audit['name'];
+
+            $model->user_id = Yii::$app->user->id;
+            if ($model->load($audit)) {
+                $model->name = $name;
+                $model->save();
+                $data = $audit['kriterien'];
+                foreach ($data as $one) {
+                    $answer = new Answer();
+                    $answer->user_audit_id = $model->id;
+                    if ($answer->load($one) && $answer->save()) {
+                        if (isset($one['no_type'])) {
+                            if ($one['no_type'] == 2) {
+                                $model->light_type = UserAudit::RED_LIGHT;
+                                $model->save();
+                            }
                         }
-                        if(!$noAnswer->save()){
-                            return $noAnswer->errors;
+                        if (isset($one['extension'])) {
+                            $photoCount = Answer::find()->leftJoin('attachment', 'attachment.object_id = answer.id')->where([
+                                'answer.user_audit_id' => $model->id,
+                            ])->count();
+//                        $photoCount = Attachment::find()->where(['object_id' => $answer->id])->andWhere(['table' => 'user_audit'])->count();
+                            $file = new Attachment();
+                            $file->object_id = $answer->id;
+                            $file->table = 'user_audit';
+                            $file->extension = $one['extension'];
+                            if ($answer->process_type == 3) {
+                                $photoCount++;
+                                $file->url = UploadModel::uploadBase($one['photo'], $one['extension'], $audit['name'], $photoCount);
+                                $file->save();
+                            }
+                            if ($answer->process_type == 4) {
+                                $photoCount++;
+                                $file->url = UploadModel::uploadBase($one['signature'], $one['extension'], mt_rand(10000, 900000), $photoCount);
+                                $signature[] = Yii::$app->request->hostInfo . '/files/photo/' . $file->url;
+                                $file->save();
+                            }
+                            if ($one['answer'] == 'nein') {
+                                $photoCount++;
+                                $noAnswer = new NoAnswer();
+                                $noAnswer->answer_id = $answer->id;
+                                $noAnswer->description = $one['description'];
+                                if (isset($one['photo'])) {
+                                    $file->url = UploadModel::uploadBase($one['photo'], $one['extension'], $audit['name'], $photoCount);
+                                    $file->save();
+                                }
+                                if (!$noAnswer->save()) {
+                                    return $noAnswer->errors;
+                                }
+                                if ($answer->no_type === 2) {
+                                    $model->success = 0;
+                                    $model->save();
+                                    break;
+                                }
+                            }
                         }
-                        if($answer->no_type === 2){
-                            return 1;
-                        }
-                    }else
-                    return 2;
-                }else
-                return $model->errors;
+//                    else
+//                    return 2;
+                    } else
+                        return $answer->errors;
+                }
+//                return $model->oneFields();
+            } else {
+                return ['errors' => $model->errors];
             }
-            return true;
+            $username = User::findOne(Yii::$app->user->id);
+            $reportTemplate = '@api/modules/v1/views/default/index';
+            $content = Yii::$app->controller->renderPartial($reportTemplate, [
+                'answers' => $audit,
+                'username' => $username->username,
+                'audit' => 'DCP-' . date('Ymd', time()) . '-' . UserAudit::beginWithZero($auditCount),
+                'signature' => $signature
+            ]);
+//
+            $pdf = new Pdf();
+            $mpdf = $pdf->api; // fetches mpdf api
+            $mpdf->showImageErrors = true;
+            $path = Yii::getAlias('@files') . '/pdf/' . $name;
+
+            $mpdf->WriteHtml($content); // call mpdf write html
+            $mpdf->Output($path . '.pdf', 'F');
+            $file = new Attachment();
+            $file->object_id = $model->id;
+            $file->table = 'user_audit';
+            $file->extension = 'pdf';
+            $file->url = $name . '.' . 'pdf';
+            if (!$file->save())
+                return $file->errors;
         }
-        return ['errors' => $model->errors];
+
+        return true;
     }
 
 

@@ -8,6 +8,7 @@ use Yii;
 use yii\behaviors\BlameableBehavior;
 use yii\behaviors\TimestampBehavior;
 use yii\db\ActiveRecord;
+use yii\web\HttpException;
 use yii\web\UploadedFile;
 use common\components\traits\errors;
 use common\components\traits\modelWithFiles;
@@ -27,8 +28,6 @@ use common\components\traits\findRecords;
  * @property integer $updated_at
  * @property integer $created_by
  * @property integer $updated_by
- *
- * @property Answer $answer
  */
 class Attachment extends ExtendedActiveRecord
 {
@@ -135,17 +134,37 @@ class Attachment extends ExtendedActiveRecord
     public function getUrl()
     {
         if ($this->extension === 'pdf') {
-            return Yii::$app->request->hostInfo. '/files/pdf/' . $this->url;
+            return Yii::$app->request->hostInfo . '/files/pdf/' . $this->url;
         }
-        return Yii::$app->request->hostInfo. '/files/photo/' . $this->url;
+        return Yii::$app->request->hostInfo . '/files/photo/' . $this->url;
     }
 
-    public function getFileCount($table, $id)
+    public static function saveFile($data, $id)
     {
-        return (int)self::find()->where(['object_id' => $id])->andWhere(['table' => $table])->count();
+        if(isset($data['photo']) || isset($data['signature'])) {
+            $name = UserAudit::findOne($id)->name;
+            $photoCount = (int)Answer::find()->leftJoin('attachment', 'attachment.object_id = answer.id')->where([
+                'answer.user_audit_id' => $id,
+            ])->count();
+            $photoCount++;
+            $model = new self;
+            $model->table = 'user_audit';
+            $model->object_id = $id;
+            $model->extension = $data['extension'];
+            if ($data['signature']) {
+                $model->url = UploadModel::uploadBase($data['signature'], $data['extension'], mt_rand(10000, 900000), $photoCount);
+            } else {
+                $model->url = UploadModel::uploadBase($data['photo'], $data['extension'], $name, $photoCount);
+            }
+            if (!$model->save()) {
+                throw new HttpException(400, $model->errors);
+            }
+            return $model->getUrl();
+        }
+        return true;
     }
 
-    public static function  uploadFiles($id, $table)
+    public static function uploadFiles($id, $table)
     {
         $model = new UploadModel();
         $model->files = UploadedFile::getInstancesByName('photo');
@@ -154,8 +173,4 @@ class Attachment extends ExtendedActiveRecord
         }
     }
 
-    public function getAnswer()
-    {
-        return $this->hasOne(Answer::className(), ['id' => 'object_id']);
-    }
 }

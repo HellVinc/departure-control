@@ -3,8 +3,13 @@
 namespace api\modules\v1\controllers;
 
 use api\modules\v1\modelForms\SignupForm;
+use common\components\UploadModel;
+use common\models\Answer;
 use common\models\Attachment;
+use common\models\Audit;
 use common\models\LoginForm;
+use common\models\UserAudit;
+use Faker\Provider\DateTime;
 use kartik\mpdf\Pdf;
 use Yii;
 use common\models\User;
@@ -27,6 +32,7 @@ class UserController extends Controller
             'class' => QueryParamAuth::className(),
             'tokenParam' => 'auth_key',
             'only' => [
+//                'test',
                 'all',
                 'one',
                 'create',
@@ -61,6 +67,8 @@ class UserController extends Controller
                 'all' => ['get'],
                 'one' => ['get'],
                 'create' => ['post'],
+                'register' => ['post'],
+                'signup' => ['post'],
                 'login' => ['post'],
                 'update' => ['post'],
                 'delete' => ['post'],
@@ -70,26 +78,14 @@ class UserController extends Controller
         return $behaviors;
     }
 
+
     public function actionTest()
     {
-        $reportTitle = 'name';
-        $reportBody = User::find()->where(['status' => 10])->all();
-        $reportTemplate = '@api/modules/v1/views/default/index';
-        $content = Yii::$app->controller->renderPartial($reportTemplate, [
-            'rechnung' => $reportBody,
-            'title' => $reportTitle
-        ]);
-
-        $pdf = new Pdf();
-        $mpdf = $pdf->api; // fetches mpdf api
-
-        $mpdf->title = $reportTitle;
-        $mpdf->WriteHtml($content); // call mpdf write html
-        $mpdf->Output($reportTitle . '.pdf', 'I');
+        return 1;
     }
 
     /**
-     * @return string
+     * @return array
      */
     public function actionAll()
     {
@@ -97,8 +93,8 @@ class UserController extends Controller
         $dataProvider = $model->searchAll(Yii::$app->request->get());
         return [
             'models' => User::allFields($dataProvider->getModels()),
-            'page_count' => $dataProvider->pagination->pageCount,
-            'page' => $dataProvider->pagination->page + 1,
+//            'page_count' => $dataProvider->pagination->pageCount,
+//            'page' => $dataProvider->pagination->page + 1,
             'count_model' => $dataProvider->getTotalCount()
         ];
     }
@@ -120,23 +116,67 @@ class UserController extends Controller
     public function actionCreate()
     {
         $model = new User();
-//        $model->scenario = 'signUp';
+        $model->scenario = 'create';
         if ($model->load(Yii::$app->request->post()) && $model->validate()) {
-            $model->account_type = 1;
+//            $model->account_type = 1;
             return $model->signup();
         }
         return ['errors' => $model->errors];
     }
 
+    /**
+     * @return array|bool
+     */
+    public function actionRegister()
+    {
+        $model = new User();
+        $model->scenario = 'register';
+        if ($model->load(Yii::$app->request->post()) && $model->validate()) {
+            $code = random_int(10000, 999999);
+            $model->sub_end = time() + (86400*30);
+            $model->activation_code = $code;
+            Yii::$app->mailer->compose()
+                ->setFrom('admin@DC.com')
+                ->setTo($model->email)
+                ->setSubject('TestReg')
+                ->setTextBody($code)
+                ->send();
+            $model->account_type = 1;
+            return $model->register();
+        }
+        return ['errors' => $model->errors];
+    }
+
+    /**
+     * @return array|mixed
+     */
+    public function actionSignup()
+    {
+        $model = $this->findModel(['activation_code' => Yii::$app->request->post('activation_code')]);
+//        $model = User::find()->where(['activation_code' => Yii::$app->request->post('activation_code')])->limit(1)->one();
+
+        if($model->load(Yii::$app->request->post()) && $model->validate()){
+           return $model->signup();
+        }
+        return $model->errors;
+    }
+
+    /**
+     * @return array
+     */
     public function actionLogin()
     {
         $model = new LoginForm();
         if ($model->load(Yii::$app->request->post(), "")) {
             if ($model->login()) {
                 $result = Yii::$app->user->identity->oneFields();
+                if ((time() - $result['0']['created_at']) > $result['0']['sub_end']) {
+                    return ['error' => 'die Testzeit ist abgelaufen'];
+                }
+
                 return $result;
             }
-            return ['error' => 'Invalid login or password'];
+            return ['error' => 'Ungültiger Anmeldename oder Passwort'];
         }
         return ['error' => 'Error. Bad request.'];
     }

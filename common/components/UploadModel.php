@@ -66,12 +66,12 @@ class UploadModel extends Model
         return false;
     }
 
-    public static function uploadBase($base64, $extension, $name)
+    public static function uploadBase($base64, $extension, $name, $photoCount)
     {
-        $photoCount = (int)UserAudit::find()
+        $path = '/files/photo/';
+        $auditCount = (int)UserAudit::find()
             ->where(['between', 'created_at', strtotime('today'), time()])
             ->count();
-
         if($extension === 'jpg')
         {
             $format = $extension;
@@ -79,13 +79,14 @@ class UploadModel extends Model
         }else{
             $format = $extension;
         }
-        $path = '/files/photo/';
-
-
         $data = str_replace('data:image/' . $extension . ';base64,', '', $base64);
         $data = str_replace(' ', '+', $data);
         $data = base64_decode($data); // Decode image using base64_decode
-        $file = 'DCF-' . date('Ymd',time()) . '-' . self::beginWithZero($photoCount) . '-' . $name . '.' . $format;
+        if($photoCount == 1){
+            $file = 'DCF-' . date('Ymd',time()) . '-' . self::beginWithZero($auditCount) . '-' . $name . '.' . $format;
+        }else{
+            $file = 'DCF-' . date('Ymd',time()) . '-' . self::beginWithZero($auditCount) . '-' . $name . '-' . self::beginWithZero($photoCount) . '.' . $format;
+        }
 //        $file = mt_rand(10000, 900000) . '.' . $extension;
 
         $dir = dirname(Yii::getAlias('@app')) . $path;
@@ -98,5 +99,6 @@ class UploadModel extends Model
             return false;
         }
         return $file;
+
     }
 }

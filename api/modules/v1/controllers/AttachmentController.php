@@ -73,8 +73,8 @@ class AttachmentController extends Controller
         $dataProvider = $model->searchAll(Yii::$app->request->get());
         return [
             'models' => Attachment::allFields($dataProvider->getModels()),
-            'page_count' => $dataProvider->pagination->pageCount,
-            'page' => $dataProvider->pagination->page + 1,
+//            'page_count' => $dataProvider->pagination->pageCount,
+//            'page' => $dataProvider->pagination->page + 1,
             'count_model' => $dataProvider->getTotalCount()
         ];
     }
@@ -100,7 +100,7 @@ class AttachmentController extends Controller
 
         if ($model->load(Yii::$app->request->post())) {
 
-            $result = UploadModel::uploadBase(Yii::$app->request->post('file'), $model->extension, mt_rand(10000, 900000));
+            $result = UploadModel::uploadBase(Yii::$app->request->post('file'), $model->extension);
             $model->url = $result;
             $model->save();
             return $model->oneFields();

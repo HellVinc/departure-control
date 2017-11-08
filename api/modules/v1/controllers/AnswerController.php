@@ -74,8 +74,8 @@ class AnswerController extends Controller
         $dataProvider = $model->searchAll(Yii::$app->request->get());
         return [
             'models' => Answer::allFields($dataProvider->getModels()),
-            'page_count' => $dataProvider->pagination->pageCount,
-            'page' => $dataProvider->pagination->page + 1,
+//            'page_count' => $dataProvider->pagination->pageCount,
+//            'page' => $dataProvider->pagination->page + 1,
             'count_model' => $dataProvider->getTotalCount()
         ];
     }

@@ -19,6 +19,10 @@ use common\components\traits\findRecords;
  * @property integer $name
  * @property integer $user_id
  * @property integer $audit_id
+ * @property integer $start_date
+ * @property integer $end_date
+ * @property integer $count_per_date
+ * @property integer $success
  * @property integer $status
  * @property integer $created_at
  * @property integer $updated_at
@@ -35,6 +39,10 @@ class UserAudit extends ExtendedActiveRecord
     use findRecords;
     use errors;
     use modelWithFiles;
+
+    const GREEN_LIGHT = 1;
+    const RED_LIGHT = 2;
+
     /**
      * @inheritdoc
      */
@@ -42,6 +50,7 @@ class UserAudit extends ExtendedActiveRecord
     {
         return 'user_audit';
     }
+
     public function behaviors()
     {
         return [
@@ -67,7 +76,7 @@ class UserAudit extends ExtendedActiveRecord
     {
         return [
             [['audit_id', 'name'], 'required'],
-            [['user_id', 'audit_id', 'status', 'created_at', 'updated_at', 'created_by', 'updated_by'], 'integer'],
+            [['user_id', 'audit_id', 'start_date', 'end_date', 'count_per_date', 'status', 'created_at', 'updated_at', 'created_by', 'updated_by'], 'integer'],
             [['name'], 'string', 'max' => 255],
             [['audit_id'], 'exist', 'skipOnError' => true, 'targetClass' => Audit::className(), 'targetAttribute' => ['audit_id' => 'id']],
             [['user_id'], 'exist', 'skipOnError' => true, 'targetClass' => User::className(), 'targetAttribute' => ['user_id' => 'id']],
@@ -113,5 +122,33 @@ class UserAudit extends ExtendedActiveRecord
     public function getUser()
     {
         return $this->hasOne(User::className(), ['id' => 'user_id']);
+    }
+
+    /**
+     * @return string
+     */
+    public function getName()
+    {
+        return 'DCP-' . date('Ymd', $this->created_at) . '-' . self::beginWithZero($this->count_per_date) . '-' .  $this->name;
+    }
+
+    /**
+     * @return int
+     */
+    public function checkCountPerDate()
+    {
+        return (int)self::find()
+            ->where(['between', 'created_at', strtotime('today'), time()])
+            ->count();
+    }
+
+
+    public function saveModel()
+    {
+        $count = $this->checkCountPerDate();
+        $count++;
+        $this->count_per_date = $count;
+        $this->user_id = Yii::$app->user->id;
+        return $this->save();
     }
 }
