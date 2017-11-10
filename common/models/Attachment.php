@@ -20,9 +20,11 @@ use common\components\traits\findRecords;
  *
  * @property integer $id
  * @property integer $object_id
+ * @property integer $admin_id
  * @property string $table
  * @property string $extension
  * @property string $url
+ * @property string $type
  * @property integer $status
  * @property integer $created_at
  * @property integer $updated_at
@@ -139,27 +141,39 @@ class Attachment extends ExtendedActiveRecord
         return Yii::$app->request->hostInfo . '/files/photo/' . $this->url;
     }
 
+    public static function Signature()
+    {
+
+    }
+
     public static function saveFile($data, $id)
     {
         if(isset($data['photo']) || isset($data['signature'])) {
             $name = UserAudit::findOne($id)->name;
-            $photoCount = (int)Answer::find()->leftJoin('attachment', 'attachment.object_id = answer.id')->where([
+            $user = User::findOne(Yii::$app->user->id);
+
+            $photoCount = (int)Answer::find()
+                ->leftJoin('attachment', 'attachment.object_id = answer.id')
+                ->where([
                 'answer.user_audit_id' => $id,
+                    'attachment.type' => 1,
             ])->count();
-            $photoCount++;
             $model = new self;
             $model->table = 'user_audit';
             $model->object_id = $id;
+            $model->admin_id = $user->created_by;
             $model->extension = $data['extension'];
-            if ($data['signature']) {
+            if (isset($data['signature'])) {
+                $model->type = 2;
                 $model->url = UploadModel::uploadBase($data['signature'], $data['extension'], mt_rand(10000, 900000), $photoCount);
             } else {
+                $photoCount++;
                 $model->url = UploadModel::uploadBase($data['photo'], $data['extension'], $name, $photoCount);
             }
-            if (!$model->save()) {
-                throw new HttpException(400, $model->errors);
+            if ($model->save()) {
+                return $model->getUrl();
             }
-            return $model->getUrl();
+            throw new HttpException(400, $model->errors);
         }
         return true;
     }

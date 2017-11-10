@@ -107,17 +107,20 @@ class Answer extends ExtendedActiveRecord
         $model = new self();
         $model->user_audit_id = $id;
         if($model->load($data) && $model->save()){
-            if($model->no_type == 2 || $model->no_type == 1){
+            if($model->no_type == 1){
                 $noAnswer = new NoAnswer();
                 $noAnswer->answer_id = $model->id;
                 $noAnswer->description = $data['description'];
-                if($noAnswer->save())
+                if(!$noAnswer->save())
                  return $noAnswer->errors;
+            }
+            if($model->no_type == 2){
+                return 3;
             }
             if(isset($data['photo'])){
                  Attachment::saveFile($data, $id);
             }
-            return true;
+            return 1;
         }
         return $model->errors;
     }

@@ -37,7 +37,7 @@ class Kriterien extends ExtendedActiveRecord
     use errors;
     use modelWithFiles;
 
-    const TYPE_DATA = 1;
+    const TYPE_DATE = 1;
     const TYPE_QUESTION = 2;
     const TYPE_PHOTO = 3;
     const TYPE_SIGNATURE= 4;

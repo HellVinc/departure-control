@@ -45,7 +45,7 @@ $iterator = 1;
 <div class="container-fluid" style="top: 150px">
     <div class="row">
         <div class="col-md-7" style="font-size: 12px; height: 30px;">
-            <span><b>Protokoll zur <?= $name ?>:</b></span> <?= $audit ?>
+            <span><b>Protokoll zur <?= $answers['type'] ?>:</b></span> <?= $audit ?>
         </div>
     </div>
     <table class="table" style="text-align: left; margin-top: 40px">
@@ -73,7 +73,7 @@ $iterator = 1;
                     <?= $iterator++ . '.' ?>
                 </td>
                 <td style=" height: 35px; border-bottom: 1px solid #ddd;">
-                    <?= date('H:i:s', 123123) ?>
+                    <?= date('H:i:s', $answer['start_date']) ?>
                 </td>
                 <td style=" height: 35px; border-bottom: 1px solid #ddd;">
                     <?php if ($answer['process_type'] == 1) {

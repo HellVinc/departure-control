@@ -97,7 +97,7 @@ class Audit extends ExtendedActiveRecord
             'status' => $this->status,
             'created_by' => $this->created_by,
             'created_at' => date('d.m.Y', $this->created_at),
-            'kriteriens' => $this->au
+            'kriteriens' => $this->auditHasKriteriens
         ];
         return $result;
     }
@@ -112,6 +112,7 @@ class Audit extends ExtendedActiveRecord
             'id',
             'type',
             'status',
+            'created_by',
             'kriteriens',
         ]);
     }

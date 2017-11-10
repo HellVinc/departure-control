@@ -19,10 +19,13 @@ use common\components\traits\findRecords;
  * @property integer $name
  * @property integer $user_id
  * @property integer $audit_id
+ * @property integer $admin_id
  * @property integer $start_date
  * @property integer $end_date
  * @property integer $count_per_date
  * @property integer $success
+ * @property integer $light_type
+ * @property integer $description
  * @property integer $status
  * @property integer $created_at
  * @property integer $updated_at
@@ -41,7 +44,8 @@ class UserAudit extends ExtendedActiveRecord
     use modelWithFiles;
 
     const GREEN_LIGHT = 1;
-    const RED_LIGHT = 2;
+    const YELLOW_LIGHT = 2;
+    const RED_LIGHT = 3;
 
     /**
      * @inheritdoc
@@ -76,8 +80,8 @@ class UserAudit extends ExtendedActiveRecord
     {
         return [
             [['audit_id', 'name'], 'required'],
-            [['user_id', 'audit_id', 'start_date', 'end_date', 'count_per_date', 'status', 'created_at', 'updated_at', 'created_by', 'updated_by'], 'integer'],
-            [['name'], 'string', 'max' => 255],
+            [['user_id', 'audit_id', 'start_date', 'light_type', 'end_date', 'count_per_date', 'status', 'created_at', 'updated_at', 'created_by', 'updated_by'], 'integer'],
+            [['name', 'description'], 'string', 'max' => 255],
             [['audit_id'], 'exist', 'skipOnError' => true, 'targetClass' => Audit::className(), 'targetAttribute' => ['audit_id' => 'id']],
             [['user_id'], 'exist', 'skipOnError' => true, 'targetClass' => User::className(), 'targetAttribute' => ['user_id' => 'id']],
         ];
@@ -98,6 +102,23 @@ class UserAudit extends ExtendedActiveRecord
             'created_by' => 'Created By',
             'updated_by' => 'Updated By',
         ];
+    }
+
+    public static function allFields($result)
+    {
+        return self::responseAll($result, [
+            'id',
+            'name' => 'Name',
+            'user_id',
+            'audit_id',
+            'admin_id',
+            'start_date',
+            'end_date',
+            'count_per_date',
+            'status',
+            'description',
+            'light_type'
+        ]);
     }
 
     /**

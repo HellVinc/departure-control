@@ -22,26 +22,6 @@ class StatisticController extends Controller
                 'hours'
             ],
         ];
-//        $behaviors['access'] = [
-//            'class' => AccessControl::className(),
-//            'only' => [
-//                'create',
-//                'update',
-//                'delete',
-//            ],
-//            'rules' => [
-//                [
-//                    'actions' => [
-//                        'create',
-//                        'update',
-//                        'delete',
-//                    ],
-//                    'allow' => true,
-//                    'roles' => ['admin'],
-//
-//                ],
-//            ],
-//        ];
 
         $behaviors['verbFilter'] = [
             'class' => VerbFilter::className(),
@@ -54,6 +34,69 @@ class StatisticController extends Controller
         return $behaviors;
     }
 
+    /**
+     * @param $start_date
+     * @param $end_date
+     * @return array
+     */
+    public function actionYear($start_date, $end_date)
+    {
+        $good = [];
+        $bad = [];
+
+        $days = ($end_date - $start_date) / 86400;
+
+        for ($i = 1; $i <= $days; $i++) {
+            $good[date('Y-m-d', $start_date)] = UserAudit::find()
+                ->where(['between', 'created_at', $start_date, $start_date + 86400])
+                ->andWhere(['light_type' => 1])
+                ->count();
+            $bad[date('Y-m-d', $start_date)] = UserAudit::find()
+                ->where(['between', 'created_at', $start_date, $start_date + 86400])
+                ->andWhere(['in', 'light_type', [2, 3]])
+                ->count();
+            $start_date += 86400;
+        }
+        return [
+            'good' => $good,
+            'bad' => $bad
+        ];
+    }
+
+    /**
+     * @param $start_date
+     * @param $end_date
+     * @return array
+     */
+    public function actionMonth($start_date, $end_date)
+    {
+        $good = [];
+        $bad = [];
+
+        $days = ($end_date - $start_date) / (86400 * 30);
+
+        for ($i = 1; $i <= $days; $i++) {
+            $good[date('Y-m-d', $start_date)] = UserAudit::find()
+                ->where(['between', 'created_at', $start_date, $start_date + 86400])
+                ->andWhere(['light_type' => 1])
+                ->count();
+            $bad[date('Y-m-d', $start_date)] = UserAudit::find()
+                ->where(['between', 'created_at', $start_date, $start_date + 86400])
+                ->andWhere(['in', 'light_type', [2, 3]])
+                ->count();
+            $start_date += 86400;
+        }
+        return [
+            'good' => $good,
+            'bad' => $bad
+        ];
+    }
+
+    /**
+     * @param $start_date
+     * @param $end_date
+     * @return array
+     */
     public function actionDays($start_date, $end_date)
     {
         $good = [];
@@ -64,11 +107,11 @@ class StatisticController extends Controller
         for ($i = 1; $i <= $days; $i++) {
             $good[date('Y-m-d', $start_date)] = UserAudit::find()
                 ->where(['between', 'created_at', $start_date, $start_date + 86400])
-                ->andWhere(['success' => 1])
+                ->andWhere(['light_type' => 1])
                 ->count();
             $bad[date('Y-m-d', $start_date)] = UserAudit::find()
                 ->where(['between', 'created_at', $start_date, $start_date + 86400])
-                ->andWhere(['success' => 0])
+                ->andWhere(['in', 'light_type', [2, 3]])
                 ->count();
             $start_date += 86400;
         }
@@ -78,6 +121,10 @@ class StatisticController extends Controller
         ];
     }
 
+    /**
+     * @param $start_date
+     * @return array
+     */
     public function actionHours($start_date)
     {
         $good = [];
@@ -90,7 +137,7 @@ class StatisticController extends Controller
                 ->count();
             $bad[date('H:i', $start_date)] = UserAudit::find()
                 ->where(['between', 'created_at', $start_date, $start_date + 3600])
-                ->andWhere(['success' => 0])
+                ->andWhere(['in', 'light_type', [2, 3]])
                 ->count();
             $start_date += 3600;
         }
@@ -99,4 +146,6 @@ class StatisticController extends Controller
             'bad' => $bad
         ];
     }
+
+
 }

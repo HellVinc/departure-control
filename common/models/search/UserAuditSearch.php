@@ -13,9 +13,9 @@ use common\models\UserAudit;
  */
 class UserAuditSearch extends UserAudit
 {
-    public $size = 10000;
+    public $size = 100;
     public $sort = [
-        'id' => SORT_ASC,
+        'id' => SORT_DESC,
     ];
     /**
      * @inheritdoc
@@ -43,8 +43,8 @@ class UserAuditSearch extends UserAudit
      */
     public function search()
     {
-        $query = UserAudit::find();
-//            ->where(['created_by' => User::adminId()]);
+        $query = UserAudit::find()
+            ->where(['admin_id' => self::adminId()]);
 
         // add conditions that should always apply here
 

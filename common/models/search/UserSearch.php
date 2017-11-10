@@ -42,8 +42,8 @@ class UserSearch extends User
      */
     public function search()
     {
-        $query = User::find();
-//            ->where(['created_by' => User::adminId()]);
+        $query = User::find()
+            ->where(['admin_id' => User::adminId()]);
 
         // add conditions that should always apply here
 
@@ -68,7 +68,6 @@ class UserSearch extends User
             'status' => $this->status,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
-            'created_by' => $this->created_by,
             'updated_by' => $this->updated_by,
         ]);
 

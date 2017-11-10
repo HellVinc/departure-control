@@ -47,10 +47,15 @@ class AttachmentSearch extends Attachment
      */
     public function search()
     {
-        $query = Attachment::find();
-//            ->where(['created_by' => User::adminId()]);
+        $query = Attachment::find()
+            ->where([
+                'type' => 1,
+                'admin_id' => User::adminId()
+            ]);
+
 //            ->innerJoin('answer', 'answer.user_audit_id = attachment.object_id')
 //        ->where(['answer.process_type' => 3]);
+
 //        $query = Answer::find()->leftJoin('attachment', 'attachment.object_id = answer.user_audit_id')
 //            ->where(['answer.process_type' => 3]);
 
@@ -77,7 +82,6 @@ class AttachmentSearch extends Attachment
             'attachment.status' => $this->status,
             'attachment.created_at' => $this->created_at,
             'attachment.updated_at' => $this->updated_at,
-            'attachment.created_by' => $this->created_by,
             'attachment.updated_by' => $this->updated_by,
         ]);
 
@@ -85,8 +89,8 @@ class AttachmentSearch extends Attachment
             ->andFilterWhere(['like', 'attachment.url', $this->url]);
 
         if($this->extension !== 'pdf'){
-            $query->leftJoin('answer', 'answer.id = attachment.object_id')
-                ->where(['answer.process_type' => 3]);
+//            $query->leftJoin('answer', 'answer.id = attachment.object_id')
+//                ->where(['answer.process_type' => 3]);
             $query->andFilterWhere(['not like', 'attachment.extension', 'pdf']);
         }else{
             $query->andFilterWhere(['like', 'attachment.extension', 'pdf']);

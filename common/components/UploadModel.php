@@ -82,11 +82,11 @@ class UploadModel extends Model
         $data = str_replace('data:image/' . $extension . ';base64,', '', $base64);
         $data = str_replace(' ', '+', $data);
         $data = base64_decode($data); // Decode image using base64_decode
-        if($photoCount == 1){
-            $file = 'DCF-' . date('Ymd',time()) . '-' . self::beginWithZero($auditCount) . '-' . $name . '.' . $format;
-        }else{
+//        if($photoCount == 1){
+//            $file = 'DCF-' . date('Ymd',time()) . '-' . self::beginWithZero($auditCount) . '-' . $name . '.' . $format;
+//        }else{
             $file = 'DCF-' . date('Ymd',time()) . '-' . self::beginWithZero($auditCount) . '-' . $name . '-' . self::beginWithZero($photoCount) . '.' . $format;
-        }
+//        }
 //        $file = mt_rand(10000, 900000) . '.' . $extension;
 
         $dir = dirname(Yii::getAlias('@app')) . $path;

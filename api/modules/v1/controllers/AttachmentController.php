@@ -19,18 +19,18 @@ class AttachmentController extends Controller
     public function behaviors()
     {
         $behaviors = parent::behaviors();
-//        $behaviors['authenticator'] = [
-//            'class' => QueryParamAuth::className(),
-//            'tokenParam' => 'auth_key',
-//            'only' => [
-//                'all',
-//                'one',
-//                'create',
-//                'add-kriterien',
-//                'update',
-//                'delete',
-//            ],
-//        ];
+        $behaviors['authenticator'] = [
+            'class' => QueryParamAuth::className(),
+            'tokenParam' => 'auth_key',
+            'only' => [
+                'all',
+                'one',
+                'create',
+                'add-kriterien',
+                'update',
+                'delete',
+            ],
+        ];
 //        $behaviors['access'] = [
 //            'class' => AccessControl::className(),
 //            'only' => [

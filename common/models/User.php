@@ -21,6 +21,7 @@ use yii\web\IdentityInterface;
  * @property integer $last_name
  * @property integer $firma
  * @property string $username
+ * @property string $pass
  * @property string $phone
  * @property string $activation_code
  * @property string $sub_end
@@ -45,10 +46,10 @@ class User extends ExtendedActiveRecord implements IdentityInterface
     use errors;
     use modelWithFiles;
 
-    const TYPE_ADMIN = 1;
-    const TYPE_VERLANDER = 2;
-    const TYPE_FRACHTFUHRER =3;
-    const TYPE_EMPFANGER = 4;
+    const TYPE_ADMIN = 0;
+    const TYPE_VERLANDER = 1;
+    const TYPE_FRACHTFUHRER = 2;
+    const TYPE_EMPFANGER = 3;
 
     public $password;
 
@@ -125,8 +126,9 @@ class User extends ExtendedActiveRecord implements IdentityInterface
 //        if (!$this->validate()) {
 //            return null;
 //        }
-        $this->setPassword($this->password);
-
+        $this->pass = $this->password;
+//        $this->setPassword($this->password);
+        $this->generateAuthKey();
         return $this->save() ? $this->oneFields() : $this->errors;
     }
 
@@ -135,9 +137,24 @@ class User extends ExtendedActiveRecord implements IdentityInterface
 //        if (!$this->validate()) {
 //            return null;
 //        }
-        $this->generateAuthKey();
+//        $this->generateAuthKey();
 
         return $this->save() ? $this->oneFields() : $this->errors;
+    }
+
+    public static function allFields($result)
+    {
+        return self::responseAll($result, [
+            'id',
+            'username',
+            'password' => 'pass',
+            'account_type',
+            'sub_end',
+            'email',
+            'auth_key',
+            'created_at',
+            'created_by'
+        ]);
     }
 
     public function oneFields()
@@ -145,6 +162,7 @@ class User extends ExtendedActiveRecord implements IdentityInterface
         return self::getFields($this, [
             'id',
             'username',
+            'password' => 'pass',
             'account_type',
             'sub_end',
             'email',
@@ -265,6 +283,7 @@ class User extends ExtendedActiveRecord implements IdentityInterface
     {
         return Yii::$app->security->validatePassword($password, $this->password_hash);
     }
+
 
     /**
      * Generates password hash from password and sets it to the model
