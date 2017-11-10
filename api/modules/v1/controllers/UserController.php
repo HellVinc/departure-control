@@ -62,10 +62,11 @@ class UserController extends Controller
 
     public function actionTest()
     {
-        $model = new DateTime(time(), new \DateTimeZone("UTC"));
+        return [
+            date('Y-m-d, H:i', '1510264859'),
+            date('Y-m-d, H:i, O, Z', '1510178459'),
 
-        return $model->format('Y-m-d H:i:s');
-
+            ];
     }
 
     /**
@@ -175,7 +176,7 @@ class UserController extends Controller
         $data = Yii::$app->request->post();
 
         $model = $this->findModel(['username' => Yii::$app->request->post('username')]);
-        if($model->pass == $data['password'] && $model->account_type != 1) {
+        if($model->pass == $data['password'] && $model->account_type != 0) {
             return $model->oneFields();
         }
             return ['error' => 'Ungültiger Anmeldename oder Passwort'];  //Invalid login or password

@@ -95,7 +95,7 @@ class User extends ExtendedActiveRecord implements IdentityInterface
             ['password', 'string', 'min' => 6],
             [['phone'], 'string', 'max' => 13],
             [['username'], 'unique'],
-            [['email'], 'unique'],
+//            [['email'], 'unique'],
             [['password_reset_token'], 'unique'],
         ];
     }

@@ -126,7 +126,7 @@ class Audit extends ExtendedActiveRecord
     {
         $model = Kriterien::find()
             ->leftJoin('audit_has_kriterien', 'audit_has_kriterien.kriterien_id = kriterien.id')
-            ->where(['audit_has_kriterien.audit_id' => $this->id])
+            ->where(['in', 'audit_has_kriterien.audit_id', [$this->id, null]])
             ->orderBy('audit_has_kriterien.id')->all();
 
         return ArrayHelper::toArray($model, [

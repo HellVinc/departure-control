@@ -44,7 +44,8 @@ class KriterienSearch extends Kriterien
     public function search()
     {
         $query = Kriterien::find()
-            ->where(['created_by' => User::adminId()]);
+            ->where(['created_by' => User::adminId()])
+        ->orWhere(['created_by' => null]);
 
         // add conditions that should always apply here
 
