@@ -93,9 +93,10 @@ class User extends ExtendedActiveRecord implements IdentityInterface
             [['auth_key'], 'string', 'max' => 32],
             ['password', 'required', 'on' => 'signUp'],
             ['password', 'string', 'min' => 6],
-            [['phone'], 'string', 'max' => 13],
+            [['phone'], 'string'],
             [['username'], 'unique'],
-//            [['email'], 'unique'],
+            [['email'], 'unique'],
+            [['activation_code'], 'unique'],
             [['password_reset_token'], 'unique'],
         ];
     }
@@ -129,7 +130,7 @@ class User extends ExtendedActiveRecord implements IdentityInterface
         $this->pass = $this->password;
 //        $this->setPassword($this->password);
         $this->generateAuthKey();
-        return $this->save() ? $this->oneFields() : $this->errors;
+        return $this->save() ? $this->oneFields() : false;
     }
 
     public function register()

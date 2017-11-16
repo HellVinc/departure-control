@@ -25,26 +25,26 @@ class UploadModel extends Model
     public function rules()
     {
         return [
-            [['files'], 'file', 'skipOnEmpty' => false, 'extensions' => 'png, jpg', 'maxFiles' => 3, 'on' => 'default'],
-            [['imageFile'], 'file', 'extensions' => 'png, jpg', 'on' => 'oneFile'],
+            [['files'], 'file', 'skipOnEmpty' => false, 'extensions' => 'png, jpg, apk, pdf', 'maxFiles' => 3],
+            [['imageFile'], 'file'],
         ];
     }
 
-    public function upload($id, $path)
+    public function upload()
     {
-        $dir = dirname(Yii::getAlias('@app')) . '/' . $path . '/' . $id;
+        $dir = dirname(Yii::getAlias('@files'));
         if (!is_dir($dir)) {
             FileHelper::createDirectory($dir);
         }
         if ($this->validate()) {
-            $name = hash_file('crc32', $this->imageFile->tempName);
-            $this->imageFile->saveAs($dir . '/' . $name . '.' . $this->imageFile->extension);
-            return $name . '.' . $this->imageFile->extension;
+           $this->imageFile->saveAs('files/' . $this->imageFile->baseName . '.' . $this->imageFile->extension);
+            return true;
         }
         return false;
+
     }
 
-    public function uploads($id, $table)
+    public function uploads($id = 0, $table = '')
     {
         if ($this->validate()) {
             $dir = dirname(Yii::getAlias('@app')) . '/files/' . $table . '/' . $id;
@@ -54,12 +54,12 @@ class UploadModel extends Model
             foreach ($this->files as $file) {
                 $name = hash_file('crc32', $file->tempName);
                 $file->saveAs($dir . '/' . $name . '.' . $file->extension);
-                $model = new Attachment();
-                $model->object_id = $id;
-                $model->table = $table;
-                $model->extension = $file->extension;
-                $model->url = $name . '.' . $file->extension;
-                $model->save();
+//                $model = new Attachment();
+//                $model->object_id = $id;
+//                $model->table = $table;
+//                $model->extension = $file->extension;
+//                $model->url = $name . '.' . $file->extension;
+//                $model->save();
             }
             return true;
         }
@@ -72,11 +72,10 @@ class UploadModel extends Model
         $auditCount = (int)UserAudit::find()
             ->where(['between', 'created_at', strtotime('today'), time()])
             ->count();
-        if($extension === 'jpg')
-        {
+        if ($extension === 'jpg') {
             $format = $extension;
             $extension = 'jpeg';
-        }else{
+        } else {
             $format = $extension;
         }
         $data = str_replace('data:image/' . $extension . ';base64,', '', $base64);
@@ -85,7 +84,7 @@ class UploadModel extends Model
 //        if($photoCount == 1){
 //            $file = 'DCF-' . date('Ymd',time()) . '-' . self::beginWithZero($auditCount) . '-' . $name . '.' . $format;
 //        }else{
-            $file = 'DCF-' . date('Ymd',time()) . '-' . self::beginWithZero($auditCount) . '-' . $name . '-' . self::beginWithZero($photoCount) . '.' . $format;
+        $file = 'DCF-' . date('Ymd', time()) . '-' . self::beginWithZero($auditCount) . '-' . $name . '-' . self::beginWithZero($photoCount) . '.' . $format;
 //        }
 //        $file = mt_rand(10000, 900000) . '.' . $extension;
 

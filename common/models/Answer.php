@@ -12,6 +12,7 @@ use common\components\traits\errors;
 use common\components\traits\modelWithFiles;
 use common\components\traits\soft;
 use common\components\traits\findRecords;
+use yii\web\HttpException;
 
 /**
  * This is the model class for table "answer".
@@ -73,10 +74,10 @@ class Answer extends ExtendedActiveRecord
     {
         return [
             [['user_audit_id', 'question', 'answer', 'start_date', 'process_type'], 'required'],
-            [['question', 'name'], 'string', 'max' => 255],
+            [['question', 'name', 'start_date', 'end_date'], 'string', 'max' => 255],
             [['answer'], 'string', 'max' => 50],
             [['data'], 'string'],
-            [['user_audit_id', 'process_type', 'start_date', 'end_date', 'no_type', 'status', 'created_at', 'updated_at', 'created_by', 'updated_by'], 'integer'],
+            [['user_audit_id', 'process_type',  'no_type', 'status', 'created_at', 'updated_at', 'created_by', 'updated_by'], 'integer'],
             [['user_audit_id'], 'exist', 'skipOnError' => true, 'targetClass' => UserAudit::className(), 'targetAttribute' => ['user_audit_id' => 'id']],
         ];
     }
@@ -107,25 +108,30 @@ class Answer extends ExtendedActiveRecord
         $model = new self();
         $model->user_audit_id = $id;
         if($model->load($data) && $model->save()){
+//            if(array_key_exists('photo', $data)){
+//                throw new HttpException('401', '1');
+//                Attachment::saveFile($data, $id);
+//            }
             if($model->no_type == 1){
                 $noAnswer = new NoAnswer();
                 $noAnswer->answer_id = $model->id;
                 $noAnswer->description = $data['description'];
                 if(!$noAnswer->save())
-                 return $noAnswer->errors;
+                return $noAnswer->errors;
             }
             if($model->no_type == 2){
-                return 3;
+                return  [
+                    'status' => 3,
+                    'model' => $model->id
+                ];
             }
-            if(isset($data['photo'])){
-                 Attachment::saveFile($data, $id);
-            }
-            return 1;
+            return [
+                'status' => 1,
+                'model' => $model->id
+            ];
         }
         return $model->errors;
     }
-
-
 
 
     public function checkProccess_type()

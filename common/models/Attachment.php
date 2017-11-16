@@ -152,12 +152,17 @@ class Attachment extends ExtendedActiveRecord
             $name = UserAudit::findOne($id)->name;
             $user = User::findOne(Yii::$app->user->id);
 
-            $photoCount = (int)Answer::find()
-                ->leftJoin('attachment', 'attachment.object_id = answer.id')
-                ->where([
-                'answer.user_audit_id' => $id,
-                    'attachment.type' => 1,
+            $photoCount = self::find()->where([
+                'object_id' => $id,
+                'type' => 1
             ])->count();
+
+//            $photoCount = (int)Answer::find()
+//                ->leftJoin('attachment', 'attachment.object_id = answer.id')
+//                ->where([
+//                'answer.user_audit_id' => $id,
+//                    'attachment.type' => 1,
+//            ])->count();
             $model = new self;
             $model->table = 'user_audit';
             $model->object_id = $id;
@@ -169,11 +174,15 @@ class Attachment extends ExtendedActiveRecord
             } else {
                 $photoCount++;
                 $model->url = UploadModel::uploadBase($data['photo'], $data['extension'], $name, $photoCount);
+//                if(!$model->save()){
+//                    $qwer = $model->errors;
+//                    throw new HttpException('401', 123);
+//                }
             }
             if ($model->save()) {
                 return $model->getUrl();
             }
-            throw new HttpException(400, $model->errors);
+//            throw new HttpException(400, 'error');
         }
         return true;
     }

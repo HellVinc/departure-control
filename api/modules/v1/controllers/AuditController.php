@@ -61,6 +61,7 @@ class AuditController extends Controller
                 'add-kriterien' => ['post'],
                 'update' => ['post'],
                 'delete' => ['post'],
+                'kriterien-delete' => ['post'],
             ],
         ];
 
@@ -105,7 +106,7 @@ class AuditController extends Controller
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
             return $model;
         }
-        return ['errors' => $model->errors];
+        return $model->errors;
     }
 
     public function actionAddKriterien()
@@ -151,6 +152,14 @@ class AuditController extends Controller
     }
 
     /**
+     * @return array|bool
+     */
+    public function actionKriterienDelete()
+    {
+        return $this->findAHKModel(Yii::$app->request->post('id'))->delete(false);
+    }
+
+    /**
      * Finds the Audit model based on its primary key value.
      * If the model is not found, a 404 HTTP exception will be thrown.
      * @param integer $id
@@ -160,6 +169,17 @@ class AuditController extends Controller
     protected function findModel($id)
     {
         if (($model = Audit::findOne($id)) !== null) {
+            if ($model->status !== 0) {
+                return $model;
+            }
+            throw new NotFoundHttpException('The requested page does not exist.');
+        }
+        throw new NotFoundHttpException('The requested page does not exist.');
+    }
+
+    protected function findAHKModel($id)
+    {
+        if (($model = AuditHasKriterien::findOne($id)) !== null) {
             if ($model->status !== 0) {
                 return $model;
             }

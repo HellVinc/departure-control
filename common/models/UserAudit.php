@@ -80,8 +80,8 @@ class UserAudit extends ExtendedActiveRecord
     {
         return [
             [['audit_id', 'name'], 'required'],
-            [['user_id', 'audit_id', 'start_date', 'light_type', 'end_date', 'count_per_date', 'status', 'created_at', 'updated_at', 'created_by', 'updated_by'], 'integer'],
-            [['name', 'description'], 'string', 'max' => 255],
+            [['user_id', 'audit_id', 'light_type', 'count_per_date', 'status', 'created_at', 'updated_at', 'created_by', 'updated_by'], 'integer'],
+            [['name', 'description', 'start_date', 'end_date'], 'string', 'max' => 255],
             [['audit_id'], 'exist', 'skipOnError' => true, 'targetClass' => Audit::className(), 'targetAttribute' => ['audit_id' => 'id']],
             [['user_id'], 'exist', 'skipOnError' => true, 'targetClass' => User::className(), 'targetAttribute' => ['user_id' => 'id']],
         ];

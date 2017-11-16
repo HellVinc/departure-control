@@ -66,6 +66,7 @@ $iterator = 1;
         </thead>
         <tbody>
         <?php foreach ($answers['kriterien'] as $answer): ?>
+            <!--            --><? // ++$iterator; ?>
             <tr>
                 <td style=" height: 35px; border-bottom: 1px solid #ddd;">
                     <?= $iterator++ . '.' ?>

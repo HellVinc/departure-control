@@ -3,6 +3,7 @@
 namespace api\modules\v1\controllers;
 
 use api\modules\v1\modelForms\SignupForm;
+use common\components\traits\errors;
 use common\components\UploadModel;
 use common\models\Answer;
 use common\models\Attachment;
@@ -32,7 +33,7 @@ class UserController extends Controller
             'class' => QueryParamAuth::className(),
             'tokenParam' => 'auth_key',
             'only' => [
-                'test',
+//                'test',
                 'all',
                 'one',
                 'create',
@@ -50,7 +51,7 @@ class UserController extends Controller
                 'register' => ['post'],
                 'signup' => ['post'],
                 'login' => ['post'],
-//                'app-login' => ['post'],
+                'app-login' => ['post'],
                 'update' => ['post'],
                 'delete' => ['post'],
             ],
@@ -62,11 +63,8 @@ class UserController extends Controller
 
     public function actionTest()
     {
-        return [
-            date('Y-m-d, H:i', '1510264859'),
-            date('Y-m-d, H:i, O, Z', '1510178459'),
+       return 1;
 
-            ];
     }
 
     /**
@@ -119,14 +117,14 @@ class UserController extends Controller
         $model->scenario = 'register';
         if ($model->load(Yii::$app->request->post()) && $model->validate()) {
             $code = random_int(10000, 999999);
-            $model->sub_end = time() + (86400*30);
+            $model->sub_end = time() + (86400 * 30);
             $model->activation_code = $code;
             $message = 'Activation code:' . $code . "\r\n" .
                 'http://dc-app.de/files/android-debug.apk';
             Yii::$app->mailer->compose()
                 ->setFrom('from@dc-app.de')
                 ->setTo($model->email)
-                ->setSubject('Reg code')
+                ->setSubject('Registration code')
                 ->setTextBody('Activation code:' . $code . "\r\n" .
                     'http://dc-app.de/files/android-debug.apk')
 //                ->setHtmlBody('<b>текст сообщения в формате HTML</b>')
@@ -143,13 +141,19 @@ class UserController extends Controller
      */
     public function actionSignup()
     {
-        $model = $this->findModel(['activation_code' => Yii::$app->request->post('activation_code')]);
-//        $model = User::find()->where(['activation_code' => Yii::$app->request->post('activation_code')])->limit(1)->one();
+        $code = Yii::$app->request->post('activation_code');
 
-        if($model->load(Yii::$app->request->post()) && $model->validate()){
-           return $model->signup();
+        if($model = User::findOne(['activation_code' => $code]) !== null){
+            $model = User::findOne(['activation_code' => $code]);
+            if ($model->load(Yii::$app->request->post()) && $model->validate()) {
+                $model->activation_code = null;
+                if(!$model->signup()){
+                    return $model->errors;
+                }
+            }
+            return $model->errors;
         }
-        return $model->errors;
+        return ['error' => 'Not found'];
     }
 
     /**
@@ -162,13 +166,14 @@ class UserController extends Controller
             if ($model->login()) {
                 $result = Yii::$app->user->identity->oneFields();
                 if ((time() - $result['0']['created_at']) > $result['0']['sub_end']) {
+
                     return ['error' => 'die Testzeit ist abgelaufen'];  //the test time has expired
                 }
                 return $result;
             }
             return ['error' => 'Ungültiger Anmeldename oder Passwort'];  //Invalid login or password
         }
-        return ['error' => 'Error. Bad request.'];
+        return ['error' => 'Error. Ungültige Anforderung.'];
     }
 
     public function actionAppLogin()
@@ -176,10 +181,10 @@ class UserController extends Controller
         $data = Yii::$app->request->post();
 
         $model = $this->findModel(['username' => Yii::$app->request->post('username')]);
-        if($model->pass == $data['password'] && $model->account_type != 0) {
+        if ($model->pass == $data['password'] && $model->account_type != 0) {
             return $model->oneFields();
         }
-            return ['error' => 'Ungültiger Anmeldename oder Passwort'];  //Invalid login or password
+        return ['error' => 'Ungültiger Anmeldename oder Passwort'];  //Invalid login or password
 //        return ['error' => 'Bad request'];
     }
 
