@@ -60,11 +60,9 @@ class UserController extends Controller
         return $behaviors;
     }
 
-
     public function actionTest()
     {
        return 1;
-
     }
 
     /**
@@ -99,7 +97,7 @@ class UserController extends Controller
     public function actionCreate()
     {
         $model = new User();
-        $model->scenario = 'signUp';
+        $model->scenario = 'create';
         if ($model->load(Yii::$app->request->post()) && $model->validate()) {
 
 //            $model->account_type = 1;
@@ -122,7 +120,7 @@ class UserController extends Controller
             $message = 'Activation code:' . $code . "\r\n" .
                 'http://dc-app.de/files/android-debug.apk';
             Yii::$app->mailer->compose()
-                ->setFrom('from@dc-app.de')
+                ->setFrom('DC-APP-GetCode@dc-app.de')
                 ->setTo($model->email)
                 ->setSubject('Registration code')
                 ->setTextBody('Activation code:' . $code . "\r\n" .
@@ -199,10 +197,12 @@ class UserController extends Controller
     {
         $model = $this->findModel(Yii::$app->request->post('id'));
 
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
+        if ($model->load(Yii::$app->request->post()) && $model->validate()) {
+            $model->pass = Yii::$app->request->post('password');
+            $model->save();
             return $model;
         }
-        return ['errors' => $model->errors];
+        return $model->errors;
     }
 
     /**

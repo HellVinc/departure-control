@@ -74,12 +74,12 @@ class StatisticController extends Controller
             $good[date('Y', $rYear)] = UserAudit::find()
                 ->where(['between', 'created_at', $i, $i + ($daysInYear * 86400)])
                 ->andWhere(['light_type' => 1])
-//                ->andWhere(['admin_id' => UserAudit::adminId()])
+                ->andWhere(['admin_id' => UserAudit::adminId()])
                 ->count();
             $bad[date('Y', $rYear)] = UserAudit::find()
                 ->where(['between', 'created_at', $i, $i + ($daysInYear * 86400)])
                 ->andWhere(['in', 'light_type', [2, 3]])
-//                ->andWhere(['admin_id' => UserAudit::adminId()])
+                ->andWhere(['admin_id' => UserAudit::adminId()])
                 ->count();
 
             $i += $daysInYear * 86400;
@@ -192,9 +192,13 @@ class StatisticController extends Controller
      */
     public function actionHours()
     {
+        $time = Yii::$app->request->get('locale');
         $start_date = strtotime(Yii::$app->request->get('start_date'));
+        $locale = substr($time, '0', '3');
+        $start_date = $start_date - ($locale * 3600);
         $good = [];
         $bad = [];
+        $all = [];
 
         for ($i = 1; $i <= 24; $i++) {
             $good[date('H:i', $start_date)] = UserAudit::find()
@@ -207,11 +211,13 @@ class StatisticController extends Controller
                 ->andWhere(['in', 'light_type', [2, 3]])
                 ->andWhere(['admin_id' => UserAudit::adminId()])
                 ->count();
+            $all[date('H:i', $start_date)] = $good[date('H:i', $start_date)] +  $bad[date('H:i', $start_date)];
             $start_date += 3600;
         }
         return [
             'good' => $good,
-            'bad' => $bad
+            'bad' => $bad,
+            'all' => $all
         ];
     }
 

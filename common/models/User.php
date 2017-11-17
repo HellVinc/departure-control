@@ -88,15 +88,14 @@ class User extends ExtendedActiveRecord implements IdentityInterface
         return [
             [['account_type', 'username', 'password'], 'required', 'on' => 'create'],
             [['first_name', 'last_name', 'email', 'phone', 'firma'], 'required', 'on' => 'register'],
-            [['account_type', 'activation_code', 'sub_end', 'status', 'created_at', 'updated_at', 'created_by', 'updated_by'], 'integer'],
+            [['account_type', 'sub_end', 'status', 'created_at', 'updated_at', 'created_by', 'updated_by'], 'integer'],
             [['username', 'first_name', 'last_name', 'firma', 'password_reset_token', 'email'], 'string', 'max' => 255],
             [['auth_key'], 'string', 'max' => 32],
             ['password', 'required', 'on' => 'signUp'],
             ['password', 'string', 'min' => 6],
             [['phone'], 'string'],
             [['username'], 'unique'],
-            [['email'], 'unique'],
-            [['activation_code'], 'unique'],
+            [['email'], 'unique', 'on' => 'register'],
             [['password_reset_token'], 'unique'],
         ];
     }

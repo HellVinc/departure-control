@@ -118,7 +118,7 @@ class KriterienController extends Controller
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
             return $model;
         }
-        return ['errors' => $model->errors];
+        return $model->errors;
     }
 
     /**

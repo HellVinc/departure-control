@@ -105,7 +105,7 @@ class AttachmentController extends Controller
             $model->save();
             return $model->oneFields();
         }
-        return ['errors' => $model->errors];
+        return  $model->errors;
     }
 
     /**
@@ -120,7 +120,7 @@ class AttachmentController extends Controller
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
             return $model;
         }
-        return ['errors' => $model->errors];
+        return $model->errors;
     }
 
     /**
