@@ -4,6 +4,7 @@ namespace api\modules\v1\controllers;
 
 use common\components\UploadModel;
 use common\models\Answer;
+use common\models\AppUser;
 use common\models\Attachment;
 use common\models\NoAnswer;
 use common\models\User;
@@ -32,7 +33,7 @@ class UserAuditController extends Controller
                 'all',
                 'one',
                 'new-create',
-                'create',
+//                'create',
                 'update',
                 'delete',
             ],
@@ -100,93 +101,98 @@ class UserAuditController extends Controller
 
     public function actionCreate()
     {
-        foreach (Yii::$app->request->post() as $audit) {
-            $signature = [];
-            $model = new UserAudit();
-            $user = User::findOne(Yii::$app->user->id);
-            $model->admin_id = $user->created_by;
+        if(AppUser::findIdentityByAccessToken(Yii::$app->request->get('auth_key'))){
+
+            $appUser = AppUser::findIdentityByAccessToken(Yii::$app->request->get('auth_key'));
+
+            foreach (Yii::$app->request->post() as $audit) {
+                $signature = [];
+                $model = new UserAudit();
+                $model->admin_id = $appUser->user_id;
+                $model->app_user_id = $appUser->id;
 //            $model->start_date = strtotime( Yii::$app->request->get('start_date'));
 //            $model->end_date = strtotime( Yii::$app->request->get('end_date'));
-            if ($model->load($audit) && $model->saveModel()) {
+                if ($model->load($audit) && $model->saveModel()) {
 
-                foreach ($audit['kriterien'] as $one) {
-                    if (isset($one['signature'])) {
-                        $signature[] = Attachment::saveFile($one, $model->id);
-                    } else {
-                        $answer = Answer::answerHandler($one, $model->id);
-                        if ($answer['status'] == 3) {
-                            $model->light_type = $answer['status'];
-                            $model->save();
-                        }
-                        if(array_key_exists('photo', $one)){
+                    foreach ($audit['kriterien'] as $one) {
+                        if (isset($one['signature'])) {
+                            $signature[] = Attachment::saveFile($one, $model->id, $appUser->user_id);
+                        } else {
+                            $answer = Answer::answerHandler($one, $model->id);
+                            if ($answer['status'] == 3) {
+                                $model->light_type = $answer['status'];
+                                $model->save();
+                            }
+                            if(array_key_exists('photo', $one)){
 //                            throw new HttpException('401', $answer['model']);
-                            Attachment::saveFile($one, $model->id);
+                                Attachment::uploadFiles($one, $model->id, $appUser->user_id);
+                            }
                         }
                     }
+                } else {
+                    return $model->errors;
                 }
-            } else {
-                return $model->errors;
-            }
-            $username = User::findOne(Yii::$app->user->id);
-            $reportTemplate = '@api/modules/v1/views/default/index-test';
-            $content = Yii::$app->controller->renderPartial($reportTemplate, [
-                'answers' => $audit,
-                'username' => $username->username,
-                'audit' => 'DCP-' . date('Ymd', time()) . '-' . UserAudit::beginWithZero($model->count_per_date),
-                'signature' => $signature,
-            ]);
+                $reportTemplate = '@api/modules/v1/views/default/index-test';
+                $content = Yii::$app->controller->renderPartial($reportTemplate, [
+                    'answers' => $audit,
+                    'username' => $appUser->username,
+                    'audit' => 'DCP-' . date('Ymd', time()) . '-' . UserAudit::beginWithZero($model->count_per_date),
+                    'signature' => $signature,
+                ]);
 //
-            $pdf = new Pdf();
+                $pdf = new Pdf();
 
 
-            $mpdf = $pdf->api; // fetches mpdf api
-            $mpdf->showImageErrors = true;
-            $path = Yii::getAlias('@files') . '/pdf/' . $model->getName();
-            $mpdf->AddPage('', // L - landscape, P - portrait
-                '', '', '', '',
-                10, // margin_left
-                10, // margin right
-                30, // margin top
-                30, // margin bottom
-                0, // margin header
-                10); // margin footer
+                $mpdf = $pdf->api; // fetches mpdf api
+                $mpdf->showImageErrors = true;
+                $path = Yii::getAlias('@files') . '/pdf/' . $model->getName();
+                $mpdf->AddPage('', // L - landscape, P - portrait
+                    '', '', '', '',
+                    10, // margin_left
+                    10, // margin right
+                    30, // margin top
+                    30, // margin bottom
+                    0, // margin header
+                    10); // margin footer
 
-            $date = explode(' ', $audit['start_date']);
-            $result =  explode('-', $date['0']);
-            $superName = 'DCP-' . date('Ymd', time()) . '-' . UserAudit::beginWithZero($model->count_per_date) . '-' . $audit['name'];
-            $protokolle = 'Protokoll vom' . "<br>" . $result['2'] . '.' . $result['1'] . '.' . $result['0'];
-            $mpdf->SetHTMLFooter(
-                '<div  style="width: 100%; display: inline-block; font-size: 12px">' .
+                $date = explode(' ', $audit['start_date']);
+                $result =  explode('-', $date['0']);
+                $superName = 'DCP-' . date('Ymd', time()) . '-' . UserAudit::beginWithZero($model->count_per_date) . '-' . $audit['name'];
+                $protokolle = 'Protokoll vom' . "<br>" . $result['2'] . '.' . $result['1'] . '.' . $result['0'];
+                $mpdf->SetHTMLFooter(
+                    '<div  style="width: 100%; display: inline-block; font-size: 12px">' .
                     '<div style="font-size: 12px; float: left; width: 33%">' .
-                        '<div style="width: 100%">' .
-                            '<b>' . htmlspecialchars_decode($superName) . '</b>
-                            <br><b>' . htmlspecialchars_decode($username->username) . '</b>' .
-                        '</div>' .
-                   '</div>' .
+                    '<div style="width: 100%">' .
+                    '<b>' . htmlspecialchars_decode($superName) . '</b>
+                            <br><b>' . htmlspecialchars_decode($appUser->username) . '</b>' .
+                    '</div>' .
+                    '</div>' .
                     '<div style="width: 33%; float: left;">' .
-                        '<div style="text-align: center;width: 100%">' .
-                            htmlspecialchars_decode($protokolle) .
-                        '</div>' .
+                    '<div style="text-align: center;width: 100%">' .
+                    htmlspecialchars_decode($protokolle) .
+                    '</div>' .
                     '</div>' .
                     '<div style="width: 33%">' .
                     ' <br><div style="font-size: 12px; text-align: right; width: 100%">' .
                     "{PAGENO} of {nb}" .
                     '</div>' .
                     '</div> ' .
-                '</div>'
-            );
-            $mpdf->WriteHtml($content); // call mpdf write html
-            $mpdf->Output($path . '.pdf', 'F');
-            $file = new Attachment();
-            $file->object_id = $model->id;
-            $file->table = 'user_audit';
-            $file->extension = 'pdf';
-            $file->admin_id = $user->created_by;
-            $file->url = $model->getName() . '.' . 'pdf';
-            if (!$file->save())
-                return $file->errors;
+                    '</div>'
+                );
+                $mpdf->WriteHtml($content); // call mpdf write html
+                $mpdf->Output($path . '.pdf', 'F');
+                $file = new Attachment();
+                $file->object_id = $model->id;
+                $file->table = 'user_audit';
+                $file->extension = 'pdf';
+                $file->admin_id = $appUser->user_id;
+                $file->url = $model->getName() . '.' . 'pdf';
+                if (!$file->save())
+                    return $file->errors;
+            }
+            return true;
         }
-        return true;
+        return ['error' => 'false'];
     }
 
 

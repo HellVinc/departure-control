@@ -18,6 +18,7 @@ use yii\helpers\ArrayHelper;
  * This is the model class for table "audit".
  *
  * @property integer $id
+ * @property string $user_id
  * @property string $type
  * @property string $status
  * @property integer $created_at
@@ -68,9 +69,9 @@ class Audit extends ExtendedActiveRecord
     public function rules()
     {
         return [
-            [['type'], 'required'],
-            [['type'], 'unique'],
-            [['created_at', 'updated_at', 'created_by', 'updated_by', 'status'], 'integer'],
+            [['type', 'user_id'], 'required'],
+            [['type', 'user_id'], 'unique', 'targetAttribute' => ['type', 'user_id']],
+            [['created_at', 'user_id', 'updated_at', 'created_by', 'updated_by', 'status'], 'integer'],
             [['type'], 'string', 'max' => 255],
         ];
     }

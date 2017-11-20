@@ -17,7 +17,7 @@ use common\components\traits\findRecords;
  *
  * @property integer $id
  * @property integer $name
- * @property integer $user_id
+ * @property integer $app_user_id
  * @property integer $audit_id
  * @property integer $admin_id
  * @property integer $start_date
@@ -34,7 +34,7 @@ use common\components\traits\findRecords;
  *
  * @property Answer[] $answers
  * @property Audit $audit
- * @property User $user
+ * @property AppUser $appUser
  */
 class UserAudit extends ExtendedActiveRecord
 {
@@ -80,10 +80,9 @@ class UserAudit extends ExtendedActiveRecord
     {
         return [
             [['audit_id', 'name'], 'required'],
-            [['user_id', 'audit_id', 'light_type', 'count_per_date', 'status', 'created_at', 'updated_at', 'created_by', 'updated_by'], 'integer'],
+            [['app_user_id', 'audit_id', 'light_type', 'count_per_date', 'status', 'created_at', 'updated_at', 'created_by', 'updated_by'], 'integer'],
             [['name', 'description', 'start_date', 'end_date'], 'string', 'max' => 255],
             [['audit_id'], 'exist', 'skipOnError' => true, 'targetClass' => Audit::className(), 'targetAttribute' => ['audit_id' => 'id']],
-            [['user_id'], 'exist', 'skipOnError' => true, 'targetClass' => User::className(), 'targetAttribute' => ['user_id' => 'id']],
         ];
     }
 
@@ -95,7 +94,6 @@ class UserAudit extends ExtendedActiveRecord
         return [
             'id' => 'ID',
             'name' => 'Name',
-            'user_id' => 'User ID',
             'audit_id' => 'Audit ID',
             'created_at' => 'Created At',
             'updated_at' => 'Updated At',
@@ -109,7 +107,6 @@ class UserAudit extends ExtendedActiveRecord
         return self::responseAll($result, [
             'id',
             'name' => 'Name',
-            'user_id',
             'audit_id',
             'admin_id',
             'start_date',
@@ -140,9 +137,9 @@ class UserAudit extends ExtendedActiveRecord
     /**
      * @return \yii\db\ActiveQuery
      */
-    public function getUser()
+    public function getAppUser()
     {
-        return $this->hasOne(User::className(), ['id' => 'user_id']);
+        return $this->hasOne(AppUser::className(), ['id' => 'app_user_id']);
     }
 
     /**
@@ -169,7 +166,6 @@ class UserAudit extends ExtendedActiveRecord
         $count = $this->checkCountPerDate();
         $count++;
         $this->count_per_date = $count;
-        $this->user_id = Yii::$app->user->id;
         return $this->save();
     }
 }

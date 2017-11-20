@@ -134,24 +134,6 @@ class Answer extends ExtendedActiveRecord
     }
 
 
-    public function checkProccess_type()
-    {
-        $file = new Attachment();
-        $file->object_id = $this->id;
-        $file->table = 'user_audit';
-        $photoCount = $this->checkPhotoCount();
-        switch ($this->process_type){
-            case 3:
-                $photoCount++;
-//                $file->url = UploadModel::uploadBase($one['photo'], $one['extension'], $this->userAudit->name, $photoCount);
-                return $file->save();
-
-            case 4:
-                $photoCount++;
-
-        }
-    }
-
     /**
      * @return int
      */

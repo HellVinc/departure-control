@@ -2,20 +2,18 @@
 
 namespace api\modules\v1\controllers;
 
-use common\models\AppUser;
-use common\models\AuditHasKriterien;
 use Yii;
-use common\models\Audit;
-use common\models\search\AuditSearch;
+use common\models\AppUser;
+use common\models\search\AppUserSearch;
 use yii\filters\auth\QueryParamAuth;
 use yii\rest\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
 
 /**
- * AuditController implements the CRUD actions for Audit model.
+ * AppUserController implements the CRUD actions for AppUser model.
  */
-class AuditController extends Controller
+class AppUserController extends Controller
 {
     public function behaviors()
     {
@@ -24,11 +22,9 @@ class AuditController extends Controller
             'class' => QueryParamAuth::className(),
             'tokenParam' => 'auth_key',
             'only' => [
-//                'all',
-                'admin-all',
+                'all',
                 'one',
                 'create',
-                'add-kriterien',
                 'update',
                 'delete',
             ],
@@ -58,93 +54,67 @@ class AuditController extends Controller
             'class' => VerbFilter::className(),
             'actions' => [
                 'all' => ['get'],
-                'admin-all' => ['get'],
                 'one' => ['get'],
                 'create' => ['post'],
-                'add-kriterien' => ['post'],
                 'update' => ['post'],
                 'delete' => ['post'],
-                'kriterien-delete' => ['post'],
             ],
         ];
 
         return $behaviors;
     }
 
+    public function actionTest()
+    {
+        return 1;
+    }
+
     /**
-     * Lists all Audit models.
+     * Lists all AppUser models.
      * @return mixed
      */
     public function actionAll()
     {
-        $user = AppUser::findOne(['auth_key' => Yii::$app->request->get('auth_key')]);
-        $audit = Audit::findAll(['created_by' => $user->user_id]);
-        $model = new AuditSearch();
+//        return AppUser::find()->all();
+        $model = new AppUserSearch();
         $dataProvider = $model->searchAll(Yii::$app->request->get());
         return [
-            'models' => Audit::allFields($audit),
+            'models' => AppUser::allFields($dataProvider->getModels()),
 //            'page_count' => $dataProvider->pagination->pageCount,
 //            'page' => $dataProvider->pagination->page + 1,
             'count_model' => $dataProvider->getTotalCount()
         ];
     }
 
-    public function actionAdminAll()
-    {
-
-        $model = new AuditSearch();
-        $dataProvider = $model->searchAll(Yii::$app->request->get());
-        return [
-            'models' => Audit::allFields($dataProvider->getModels()),
-//            'page_count' => $dataProvider->pagination->pageCount,
-//            'page' => $dataProvider->pagination->page + 1,
-            'count_model' => $dataProvider->getTotalCount()
-        ];
-    }
 
     /**
-     * Displays a single Audit model.
+     * Displays a single AppUser model.
+     * @param integer $id
      * @return mixed
      */
     public function actionOne()
     {
-         $model = $this->findModel(Yii::$app->request->get('id'));
-        return $model->oneFields();
+        return $this->findModel(Yii::$app->request->get('id'));
     }
 
     /**
-     * Creates a new Audit model.
+     * Creates a new AppUser model.
      * If creation is successful, the browser will be redirected to the 'view' page.
      * @return mixed
      */
     public function actionCreate()
     {
-        $model = new Audit();
+        $model = new AppUser();
         $model->user_id = Yii::$app->user->id;
+        $model->auth_key = Yii::$app->security->generateRandomString();
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
             return $model;
         }
         return $model->errors;
     }
 
-    public function actionAddKriterien()
-    {
-        $kriteriens = Yii::$app->request->post('kriteriens');
-        $audit = Yii::$app->request->post('audit_id');
-        foreach ($kriteriens as $kriterien) {
-            $model = new AuditHasKriterien();
-                $model->kriterien_id = $kriterien['id'];
-                $model->audit_id = $audit;
-                if(!$model->save()){
-                    return $model->errors;
-                }
-
-        }
-        return true;
-    }
-
     /**
-     * Updates an existing Audit model.
+     * Updates an existing AppUser model.
      * If update is successful, the browser will be redirected to the 'view' page.
      * @param integer $id
      * @return mixed
@@ -160,44 +130,26 @@ class AuditController extends Controller
     }
 
     /**
-     * Deletes an existing Audit model.
+     * Deletes an existing AppUser model.
      * If deletion is successful, the browser will be redirected to the 'index' page.
+     * @param integer $id
      * @return mixed
      */
     public function actionDelete()
     {
-        return $this->findModel(Yii::$app->request->post('id'))->delete();
+        return $this->findModel(Yii::$app->request->post('id'))->delete(false);
     }
 
     /**
-     * @return array|bool
-     */
-    public function actionKriterienDelete()
-    {
-        return $this->findAHKModel(Yii::$app->request->post('id'))->delete(false);
-    }
-
-    /**
-     * Finds the Audit model based on its primary key value.
+     * Finds the AppUser model based on its primary key value.
      * If the model is not found, a 404 HTTP exception will be thrown.
      * @param integer $id
-     * @return Audit the loaded model
+     * @return AppUser the loaded model
      * @throws NotFoundHttpException if the model cannot be found
      */
     protected function findModel($id)
     {
-        if (($model = Audit::findOne($id)) !== null) {
-            if ($model->status !== 0) {
-                return $model;
-            }
-            throw new NotFoundHttpException('The requested page does not exist.');
-        }
-        throw new NotFoundHttpException('The requested page does not exist.');
-    }
-
-    protected function findAHKModel($id)
-    {
-        if (($model = AuditHasKriterien::findOne($id)) !== null) {
+        if (($model = AppUser::findOne($id)) !== null) {
             if ($model->status !== 0) {
                 return $model;
             }

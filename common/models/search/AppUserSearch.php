@@ -2,49 +2,40 @@
 
 namespace common\models\search;
 
-use common\models\User;
 use Yii;
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
-use common\models\UserAudit;
+use common\models\AppUser;
 
 /**
- * UserAuditSearch represents the model behind the search form about `common\models\UserAudit`.
+ * AppUserSearch represents the model behind the search form about `common\models\AppUser`.
  */
-class UserAuditSearch extends UserAudit
+class AppUserSearch extends AppUser
 {
-    public $size = 100;
+    public $size = 10;
     public $sort = [
-        'id' => SORT_DESC,
+        'id' => SORT_ASC,
     ];
+
     /**
      * @inheritdoc
      */
     public function rules()
     {
         return [
-            [['id', 'audit_id', 'created_at', 'updated_at', 'created_by', 'updated_by'], 'integer'],
-            [['name'], 'safe']
+            [['id', 'user_id', 'account_type', 'status', 'created_at', 'updated_at', 'created_by', 'updated_by'], 'integer'],
+            [['password', 'username', 'phone', 'auth_key', 'email'], 'safe'],
         ];
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function scenarios()
-    {
-        // bypass scenarios() implementation in the parent class
-        return Model::scenarios();
-    }
 
     /**
-     * Creates data provider instance with search query applied*
+     * Creates data provider instance with search query applied
      * @return ActiveDataProvider
      */
     public function search()
     {
-        $query = UserAudit::find()
-            ->where(['admin_id' => self::adminId()]);
+        $query = AppUser::find()->where(['created_by' => Yii::$app->user->id]);
 
         // add conditions that should always apply here
 
@@ -66,14 +57,20 @@ class UserAuditSearch extends UserAudit
         // grid filtering conditions
         $query->andFilterWhere([
             'id' => $this->id,
-            'audit_id' => $this->audit_id,
+            'user_id' => $this->user_id,
+            'account_type' => $this->account_type,
+            'status' => $this->status,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             'created_by' => $this->created_by,
             'updated_by' => $this->updated_by,
         ]);
 
-        $query->andFilterWhere(['like', 'name', $this->name]);
+        $query->andFilterWhere(['like', 'password', $this->password])
+            ->andFilterWhere(['like', 'username', $this->username])
+            ->andFilterWhere(['like', 'phone', $this->phone])
+            ->andFilterWhere(['like', 'auth_key', $this->auth_key])
+            ->andFilterWhere(['like', 'email', $this->email]);
 
         return $dataProvider;
     }

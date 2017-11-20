@@ -141,22 +141,13 @@ class Attachment extends ExtendedActiveRecord
         return Yii::$app->request->hostInfo . '/files/photo/' . $this->url;
     }
 
-    public static function Signature()
+    public static function saveFile($data, $id, $user_id)
     {
-
-    }
-
-    public static function saveFile($data, $id)
-    {
-        if(isset($data['photo']) || isset($data['signature'])) {
-            $name = UserAudit::findOne($id)->name;
-            $user = User::findOne(Yii::$app->user->id);
-
+        if(isset($data['signature'])) {
             $photoCount = self::find()->where([
                 'object_id' => $id,
                 'type' => 1
             ])->count();
-
 //            $photoCount = (int)Answer::find()
 //                ->leftJoin('attachment', 'attachment.object_id = answer.id')
 //                ->where([
@@ -166,19 +157,11 @@ class Attachment extends ExtendedActiveRecord
             $model = new self;
             $model->table = 'user_audit';
             $model->object_id = $id;
-            $model->admin_id = $user->created_by;
+            $model->admin_id = $user_id;
             $model->extension = $data['extension'];
-            if (isset($data['signature'])) {
                 $model->type = 2;
                 $model->url = UploadModel::uploadBase($data['signature'], $data['extension'], mt_rand(10000, 900000), $photoCount);
-            } else {
-                $photoCount++;
-                $model->url = UploadModel::uploadBase($data['photo'], $data['extension'], $name, $photoCount);
-//                if(!$model->save()){
-//                    $qwer = $model->errors;
-//                    throw new HttpException('401', 123);
-//                }
-            }
+
             if ($model->save()) {
                 return $model->getUrl();
             }
@@ -187,13 +170,28 @@ class Attachment extends ExtendedActiveRecord
         return true;
     }
 
-    public static function uploadFiles($id, $table)
+    public static function uploadFiles($data, $id, $admin_id)
     {
-        $model = new UploadModel();
-        $model->files = UploadedFile::getInstancesByName('photo');
-        if ($model->uploads($id, $table)) {
-            return $model;
+        $name = UserAudit::findOne($id)->name;
+
+        $photoCount = self::find()->where([
+            'object_id' => $id,
+            'type' => 1
+        ])->count();
+        foreach ($data['photo'] as $one){
+            $model = new self();
+            $model->table = 'user_audit';
+            $model->object_id = $id;
+            $model->extension = 'jpeg';
+            $model->admin_id = $admin_id;
+            $photoCount++;
+            $model->url = UploadModel::uploadBase($one, $model->extension, $name, $photoCount);
+            if (!$model->save()){
+                throw new HttpException('401', '111');
+            }
+
         }
+        return true;
     }
 
 }

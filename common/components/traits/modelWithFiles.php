@@ -9,13 +9,13 @@ trait modelWithFiles
 {
     # save records
 
-    public function checkFiles()
-    {
-        if ($_FILES) {
-            return Attachment::uploadFiles($this->id, $this->tablename());
-        }
-        return $this;
-    }
+//    public function checkFiles()
+//    {
+//        if ($_FILES) {
+//            return Attachment::uploadFiles($this->id, $this->tablename());
+//        }
+//        return $this;
+//    }
 
     #delte record with his files
     public function removeFiles()

@@ -6,6 +6,7 @@ use api\modules\v1\modelForms\SignupForm;
 use common\components\traits\errors;
 use common\components\UploadModel;
 use common\models\Answer;
+use common\models\AppUser;
 use common\models\Attachment;
 use common\models\Audit;
 use common\models\LoginForm;
@@ -48,6 +49,7 @@ class UserController extends Controller
                 'all' => ['get'],
                 'one' => ['get'],
                 'create' => ['post'],
+                'check' => ['post'],
                 'register' => ['post'],
                 'signup' => ['post'],
                 'login' => ['post'],
@@ -62,7 +64,10 @@ class UserController extends Controller
 
     public function actionTest()
     {
-       return 1;
+        $data = Yii::$app->request->get();
+//        $model = AppUser::findOne(['username' => Yii::$app->request->post('username'), 'activation_code' => $data['activation_code']]);
+       return  $data['activation_code'];
+
     }
 
     /**
@@ -141,10 +146,9 @@ class UserController extends Controller
     {
         $code = Yii::$app->request->post('activation_code');
 
-        if($model = User::findOne(['activation_code' => $code]) !== null){
+        if($model = User::findOne(['activation_code' => $code, 'username' => null]) !== null){
             $model = User::findOne(['activation_code' => $code]);
             if ($model->load(Yii::$app->request->post()) && $model->validate()) {
-                $model->activation_code = null;
                 if(!$model->signup()){
                     return $model->errors;
                 }
@@ -174,16 +178,28 @@ class UserController extends Controller
         return ['error' => 'Error. Ungültige Anforderung.'];
     }
 
+
+    public function actionCheck()
+    {
+        $code = Yii::$app->request->post('activation_code');
+        if(User::findOne(['activation_code' => $code])){
+            return true;
+        }
+        return ['error' => 'Does not exist'];
+    }
+
     public function actionAppLogin()
     {
         $data = Yii::$app->request->post();
-
-        $model = $this->findModel(['username' => Yii::$app->request->post('username')]);
-        if ($model->pass == $data['password'] && $model->account_type != 0) {
-            return $model->oneFields();
+        if(array_key_exists('activation_code', $data) && ($user = User::findOne(['activation_code' => $data['activation_code']])) !== null){
+            $model = AppUser::findOne(['username' => Yii::$app->request->post('username'), 'created_by' => $user->id]);
+//        $model = $this->findModel(['username' => Yii::$app->request->post('username')]);
+            if ($model->password == $data['password'] && $model->account_type != 0) {
+                return $model->oneFields();
+            }
+            return ['error' => 'Ungültiger Anmeldename oder Passwort'];  //Invalid login or password
         }
-        return ['error' => 'Ungültiger Anmeldename oder Passwort'];  //Invalid login or password
-//        return ['error' => 'Bad request'];
+        return ['error' => 'Not exist'];
     }
 
 

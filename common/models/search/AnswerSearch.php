@@ -17,6 +17,7 @@ class AnswerSearch extends Answer
     public $sort = [
         'id' => SORT_ASC,
     ];
+
     /**
      * @inheritdoc
      */
@@ -26,15 +27,6 @@ class AnswerSearch extends Answer
             [['id', 'user_audit_id', 'answer', 'process_type', 'start_date', 'end_date', 'no_type', 'status', 'created_at', 'updated_at', 'created_by', 'updated_by'], 'integer'],
             [['answer', 'question'], 'safe']
             ];
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function scenarios()
-    {
-        // bypass scenarios() implementation in the parent class
-        return Model::scenarios();
     }
 
     /**

@@ -220,6 +220,4 @@ class StatisticController extends Controller
             'all' => $all
         ];
     }
-
-
 }
